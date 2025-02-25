@@ -1,4 +1,5 @@
 #include "memory_buffers.hpp"
+#include <algorithm>
 #include <iostream>
 #include <limits>
 
@@ -12,10 +13,7 @@ int main()
     constexpr auto layout_type = layout_info<layout, 8>{};
     auto           buffer      = static_stage_buffer<float, size, layout_type>{};
 
-    for (auto& e : buffer.data_)
-    {
-        e = std::numeric_limits<float>::quiet_NaN();
-    }
+    std::ranges::fill(buffer.data_, std::numeric_limits<float>::quiet_NaN());
 
     for (auto const& e : buffer.data_)
     {
