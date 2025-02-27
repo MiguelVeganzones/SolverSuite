@@ -1,8 +1,5 @@
--I./include/Timing
--I./include/PhysicalModel
 -I./include/Utility
--I./include/Plotting/
--I./include/Containers
 -I./include/Solvers
--I./include/Simulation
+-I./include/Allocators
+-I./include/Memory
 -std=c++2b
