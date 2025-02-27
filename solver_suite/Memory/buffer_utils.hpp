@@ -1,6 +1,6 @@
 #pragma once
 
-#include <span>
+#include <cstddef>
 
 namespace buffers::mb_utils
 {

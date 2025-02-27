@@ -1,41 +1,53 @@
-#include "memory_buffers.hpp"
+#include "buffer_config.hpp"
+#include "buffer_interface.hpp"
+#include "monotonic_allocator.hpp"
 #include <algorithm>
+#include <cmath>
 #include <iostream>
 #include <limits>
+#include <vector>
 
 int main()
 {
-    using namespace memory_buffers;
-    constexpr auto N           = 7uz;
-    constexpr auto D           = 5uz;
-    constexpr auto size        = data_shape<N, D>{};
-    constexpr auto layout      = LayoutPolicy::layout_sample_major_padded;
-    constexpr auto layout_type = layout_info<layout, 8>{};
-    auto           buffer      = static_stage_buffer<float, size, layout_type>{};
+    using namespace buffers;
+    using F                     = float;
+    constexpr auto N            = 7uz;
+    constexpr auto D            = 5uz;
+    constexpr auto layout       = config::LayoutPolicy::layout_column_major;
+    constexpr auto minor_stride = 8uz;
+    // constexpr auto interface = buffer_interface::static_shape<N, D, layout, 8>{};
+    // const auto interface = buffer_interface::dynamic_length<D>(N, 10, layout,
+    // minor_stride);
+    const auto interface =
+        buffer_interface::dynamic_shape(N, 10, D, D, layout, minor_stride);
 
-    std::ranges::fill(buffer.data_, std::numeric_limits<float>::quiet_NaN());
+    std::cout << interface.underlying_size_y() << '\n';
+    std::cout << interface.underlying_size_x() << '\n';
 
-    for (auto const& e : buffer.data_)
-    {
-        std::cout << e << ' ';
-    }
+    auto       allocator = allocators::static_monotonic_allocator<F, 100>{};
+    const auto n         = interface.underlying_flat_size();
+    auto       ptr       = allocator.allocate(n);
+
+    std::span buffer(ptr, n);
+    std::ranges::fill(buffer, std::numeric_limits<float>::quiet_NaN());
+
     std::cout << '\n';
     for (auto i = 0uz; i != N; ++i)
     {
         for (auto j = 0uz; j != D; ++j)
         {
-            buffer[i, j] = float(i);
+            buffer[interface.translate_idx(i, j)] = float(i);
         }
     }
     for (auto i = 0uz; i != N; ++i)
     {
         for (auto j = 0uz; j != D; ++j)
         {
-            std::cout << buffer[i, j] << ' ';
+            std::cout << buffer[interface.translate_idx(i, j)] << ' ';
         }
         std::cout << '\n';
     }
-    for (auto const& e : buffer.data_)
+    for (auto const& e : buffer)
     {
         std::cout << e << ' ';
     }

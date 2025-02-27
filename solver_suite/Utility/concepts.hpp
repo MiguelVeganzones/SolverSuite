@@ -1,5 +1,4 @@
-#ifndef INCLUDED_UTILITY_CONCEPTS
-#define INCLUDED_UTILITY_CONCEPTS
+#pragma once
 
 #include <chrono>
 #include <concepts>
@@ -77,5 +76,3 @@ template <typename T>
 concept Duration = requires(T t) { std::chrono::duration_cast<std::chrono::seconds>(t); };
 
 } // namespace utility::concepts
-
-#endif // INCLUDED_UTILITY_CONCEPTS
