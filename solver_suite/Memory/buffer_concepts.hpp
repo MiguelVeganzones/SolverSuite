@@ -2,7 +2,7 @@
 
 #include <concepts>
 
-namespace buffers::mb_concepts
+namespace buffers::buffer_concepts
 {
 
 template <typename T>
@@ -17,4 +17,4 @@ concept BufferShape = requires(T t) {
     { t.flat_size() } -> std::same_as<typename T::size_type>;
 };
 
-} // namespace buffers::mb_concepts
+} // namespace buffers::buffer_concepts

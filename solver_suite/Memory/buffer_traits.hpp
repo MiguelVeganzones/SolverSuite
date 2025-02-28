@@ -3,7 +3,7 @@
 #include <span>
 #include <type_traits>
 
-namespace buffers::mb_traits
+namespace buffers::buffer_traits
 {
 
 template <auto T>
@@ -21,4 +21,4 @@ template <auto T>
 inline constexpr bool is_dynamic_extent_v = is_dynamic_extent<T>::value;
 
 
-} // namespace buffers::mb_traits
+} // namespace buffers::buffer_traits

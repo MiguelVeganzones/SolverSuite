@@ -10,25 +10,27 @@ namespace buffers::buffer_interface
 {
 
 template <
-    std::size_t                   Size_Y,
-    std::size_t                   Size_X,
-    buffers::config::LayoutPolicy Layout_Policy,
-    std::size_t                   Layout_Minor_Stride>
-class static_shape
+    std::size_t                 Size_Y,
+    std::size_t                 Size_X,
+    buffer_config::LayoutPolicy Layout_Policy,
+    std::size_t                 Layout_Minor_Stride>
+class static_buffer_interface
 {
 public:
+    // TODO: signed integer types may be faster due to a narrower contract
     using size_type                                         = std::size_t;
     using index_t                                           = std::size_t;
+    using layout_policy_t                                   = buffer_config::LayoutPolicy;
     inline static constexpr size_type s_size_y              = Size_Y;
     inline static constexpr size_type s_size_x              = Size_X;
     inline static constexpr auto      s_layout_policy       = Layout_Policy;
     inline static constexpr auto      s_layout_minor_stride = Layout_Minor_Stride;
     inline static constexpr size_type s_underlying_size_y   = [] constexpr {
-        if constexpr (s_layout_policy == config::LayoutPolicy::layout_row_major)
+        if constexpr (s_layout_policy == layout_policy_t::layout_row_major)
         {
             return Size_Y;
         }
-        else if constexpr (s_layout_policy == config::LayoutPolicy::layout_column_major)
+        else if constexpr (s_layout_policy == layout_policy_t::layout_column_major)
         {
             return Size_X;
         }
@@ -38,12 +40,22 @@ public:
         }
     }();
     inline static constexpr size_type s_underlying_size_x = [] constexpr {
-        if constexpr (s_layout_policy == config::LayoutPolicy::layout_row_major)
+        if constexpr (s_layout_policy == layout_policy_t::layout_row_major)
         {
+            static_assert(
+                s_layout_minor_stride == 0 || Size_X <= s_layout_minor_stride,
+                "User defined stride must be greater than or equal to the corresponfing "
+                "extent"
+            );
             return std::max(Size_X, s_layout_minor_stride);
         }
-        else if constexpr (s_layout_policy == config::LayoutPolicy::layout_column_major)
+        else if constexpr (s_layout_policy == layout_policy_t::layout_column_major)
         {
+            static_assert(
+                s_layout_minor_stride == 0 || Size_Y <= s_layout_minor_stride,
+                "User defined stride must be greater than or equal to the corresponfing "
+                "extent"
+            );
             return std::max(Size_Y, s_layout_minor_stride);
         }
         else
@@ -107,11 +119,13 @@ public:
     inline constexpr auto translate_idx(index_t idx_y, index_t idx_x) const noexcept
         -> index_t
     {
-        if constexpr (s_layout_policy == config::LayoutPolicy::layout_column_major)
+        assert(idx_y < s_size_y);
+        assert(idx_x < s_size_x);
+        if constexpr (s_layout_policy == layout_policy_t::layout_column_major)
         {
             return idx_x * underlying_size_x() + idx_y;
         }
-        else if constexpr (s_layout_policy == config::LayoutPolicy::layout_row_major)
+        else if constexpr (s_layout_policy == layout_policy_t::layout_row_major)
         {
             return idx_x + underlying_size_x() * idx_y;
         }
@@ -128,37 +142,46 @@ class dynamic_length
 public:
     using size_type                            = std::size_t;
     using index_t                              = std::size_t;
+    using layout_policy_t                      = buffer_config::LayoutPolicy;
     inline static constexpr size_type s_size_y = std::dynamic_extent;
     inline static constexpr size_type s_size_x = Size_X;
     static_assert(s_size_x > 0);
 
 public:
-    dynamic_length(
-        size_type            length,
-        size_type            capacity,
-        config::LayoutPolicy layout_policy,
-        size_type            minor_stride
-    ) :
-        size_y_{ length },
-        capacity_y_{ std::max(capacity, size_y_) },
-        underlying_size_y_{ layout_policy == config::LayoutPolicy::layout_row_major
-                                ? capacity_y_
-                                : s_size_x },
-        underlying_size_x_{ layout_policy == config::LayoutPolicy::layout_row_major
-                                ? std::max(s_size_x, minor_stride)
-                                : std::max(capacity_y_, minor_stride) },
-        stride_y_{ layout_policy == config::LayoutPolicy::layout_row_major
-                       ? underlying_size_x_
-                       : size_type{ 1 } },
-        stride_x_{ layout_policy == config::LayoutPolicy::layout_row_major
-                       ? size_type{ 1 }
-                       : underlying_size_x_ },
-        layout_policy_{ layout_policy }
+    constexpr dynamic_length(
+        size_type       length,
+        size_type       capacity,
+        layout_policy_t layout_policy,
+        size_type       minor_stride
+    ) noexcept
+        : size_y_{ length }
+        , capacity_y_{ std::max(capacity, size_y_) }
+        , underlying_size_y_{ layout_policy == layout_policy_t::layout_row_major
+                                  ? capacity_y_
+                                  : s_size_x }
+        , underlying_size_x_{ layout_policy == layout_policy_t::layout_row_major
+                                  ? std::max(s_size_x, minor_stride)
+                                  : std::max(capacity_y_, minor_stride) }
+        , stride_y_{ layout_policy == layout_policy_t::layout_row_major
+                         ? underlying_size_x_
+                         : size_type{ 1 } }
+        , stride_x_{ layout_policy == layout_policy_t::layout_row_major
+                         ? size_type{ 1 }
+                         : underlying_size_x_ }
+        , layout_policy_{ layout_policy }
     {
         assert(
-            layout_policy_ == config::LayoutPolicy::layout_column_major ||
-            layout_policy_ == config::LayoutPolicy::layout_row_major
+            layout_policy_ == layout_policy_t::layout_column_major ||
+            layout_policy_ == layout_policy_t::layout_row_major
         );
+        switch (layout_policy_)
+        {
+        case layout_policy_t::layout_column_major:
+            assert(capacity_y_ <= minor_stride);
+            break;
+        case layout_policy_t::layout_row_major: assert(s_size_x <= minor_stride); break;
+        default: utility::error_handling::assert_unreachable(); break;
+        }
     }
 
     [[nodiscard]]
@@ -213,17 +236,19 @@ public:
     inline constexpr auto translate_idx(index_t idx_y, index_t idx_x) const noexcept
         -> index_t
     {
+        assert(idx_y < size_y_);
+        assert(idx_x < s_size_x);
         return idx_y * stride_y_ + idx_x * stride_x_;
     }
 
 private:
-    size_type            size_y_;
-    size_type            capacity_y_;
-    size_type            underlying_size_y_;
-    size_type            underlying_size_x_;
-    size_type            stride_y_;
-    size_type            stride_x_;
-    config::LayoutPolicy layout_policy_;
+    size_type       size_y_;
+    size_type       capacity_y_;
+    size_type       underlying_size_y_;
+    size_type       underlying_size_x_;
+    size_type       stride_y_;
+    size_type       stride_x_;
+    layout_policy_t layout_policy_;
 };
 
 class dynamic_shape
@@ -231,40 +256,51 @@ class dynamic_shape
 public:
     using size_type                            = std::size_t;
     using index_t                              = std::size_t;
+    using layout_policy_t                      = buffer_config::LayoutPolicy;
     inline static constexpr size_type s_size_y = std::dynamic_extent;
     inline static constexpr size_type s_size_x = std::dynamic_extent;
 
 public:
-    dynamic_shape(
-        size_type            size_y,
-        size_type            capacity_y,
-        size_type            size_x,
-        size_type            capacity_x,
-        config::LayoutPolicy layout_policy,
-        size_type            minor_stride
-    ) :
-        size_y_{ size_y },
-        size_x_{ size_x },
-        capacity_y_{ std::max(capacity_y, size_y_) },
-        capacity_x_{ std::max(capacity_x, size_x_) },
-        underlying_size_y_{ layout_policy == config::LayoutPolicy::layout_row_major
-                                ? capacity_y_
-                                : capacity_x_ },
-        underlying_size_x_{ layout_policy == config::LayoutPolicy::layout_row_major
-                                ? std::max(capacity_x_, minor_stride)
-                                : std::max(capacity_y_, minor_stride) },
-        stride_y_{ layout_policy == config::LayoutPolicy::layout_row_major
-                       ? underlying_size_x_
-                       : size_type{ 1 } },
-        stride_x_{ layout_policy == config::LayoutPolicy::layout_row_major
-                       ? size_type{ 1 }
-                       : underlying_size_x_ },
-        layout_policy_{ layout_policy }
+    constexpr dynamic_shape(
+        size_type       size_y,
+        size_type       capacity_y,
+        size_type       size_x,
+        size_type       capacity_x,
+        layout_policy_t layout_policy,
+        size_type       minor_stride
+    ) noexcept
+        : size_y_{ size_y }
+        , size_x_{ size_x }
+        , capacity_y_{ std::max(capacity_y, size_y_) }
+        , capacity_x_{ std::max(capacity_x, size_x_) }
+        , underlying_size_y_{ layout_policy == layout_policy_t::layout_row_major
+                                  ? capacity_y_
+                                  : capacity_x_ }
+        , underlying_size_x_{ layout_policy == layout_policy_t::layout_row_major
+                                  ? std::max(capacity_x_, minor_stride)
+                                  : std::max(capacity_y_, minor_stride) }
+        , stride_y_{ layout_policy == layout_policy_t::layout_row_major
+                         ? underlying_size_x_
+                         : size_type{ 1 } }
+        , stride_x_{ layout_policy == layout_policy_t::layout_row_major
+                         ? size_type{ 1 }
+                         : underlying_size_x_ }
+        , layout_policy_{ layout_policy }
     {
         assert(
-            layout_policy_ == config::LayoutPolicy::layout_column_major ||
-            layout_policy_ == config::LayoutPolicy::layout_row_major
+            layout_policy_ == layout_policy_t::layout_column_major ||
+            layout_policy_ == layout_policy_t::layout_row_major
         );
+        switch (layout_policy_)
+        {
+        case layout_policy_t::layout_column_major:
+            assert(capacity_y_ <= minor_stride);
+            break;
+        case layout_policy_t::layout_row_major:
+            assert(capacity_x_ <= minor_stride);
+            break;
+        default: utility::error_handling::assert_unreachable(); break;
+        }
     }
 
     [[nodiscard]]
@@ -319,22 +355,25 @@ public:
     inline constexpr auto translate_idx(index_t idx_y, index_t idx_x) const noexcept
         -> index_t
     {
+        assert(idx_y < size_y_);
+        assert(idx_x < size_x_);
         return idx_y * stride_y_ + idx_x * stride_x_;
     }
 
 private:
-    // TODO: Capacity is redundant, since it can be obtained at runtime knowing
-    // the layout and the underlying size. Look into it, maybe it makes sense to
-    // trade space for efficiency, this would very much be application specific
-    size_type            size_y_;
-    size_type            size_x_;
-    size_type            capacity_y_;
-    size_type            capacity_x_;
-    size_type            underlying_size_y_;
-    size_type            underlying_size_x_;
-    size_type            stride_y_;
-    size_type            stride_x_;
-    config::LayoutPolicy layout_policy_;
+    // TODO: Capacity is redundant since it can be obtained at runtime knowing
+    // the layout and the underlying size. Look into it, most likely doesnt make sense to
+    // trade space for efficiency in an object like this but they are definitely
+    // unnecessarily large
+    size_type       size_y_;
+    size_type       size_x_;
+    size_type       capacity_y_;
+    size_type       capacity_x_;
+    size_type       underlying_size_y_;
+    size_type       underlying_size_x_;
+    size_type       stride_y_;
+    size_type       stride_x_;
+    layout_policy_t layout_policy_;
 };
 
 } // namespace buffers::buffer_interface

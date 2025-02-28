@@ -2,7 +2,7 @@
 
 #include <cstddef>
 
-namespace buffers::config
+namespace buffers::buffer_config
 {
 
 enum struct LayoutPolicy
@@ -28,4 +28,4 @@ struct layout_padding
     inline static constexpr auto value    = Padding_Stride;
 };
 
-} // namespace buffers::config
+} // namespace buffers::buffer_config

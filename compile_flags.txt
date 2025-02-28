@@ -1,5 +1,4 @@
--I./include/Utility
--I./include/Solvers
--I./include/Allocators
--I./include/Memory
+-I./solver_suite/Utility
+-I./solver_suite/Allocators
+-I./solver_suite/Memory
 -std=c++2b
