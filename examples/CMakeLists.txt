@@ -48,6 +48,9 @@ set(DEBUG_CXX_FLAGS
 	-fdiagnostics-show-template-tree
 	-ffinite-math-only
 	-fmax-errors=5
+	-fno-exceptions
+	-fno-rtti
+	-fno-omit-frame-pointer
 	-fvisibility=hidden
 	-ggdb3
 	-mavx
@@ -77,6 +80,8 @@ set(RELEASE_CXX_FLAGS
 	-fstrength-reduce
 	-fbounds-check
 	-fconcepts-diagnostics-depth=3
+	-fno-exceptions
+	-fno-rtti
 	-fopt-info-vec-all
 	-fvisibility=hidden
 )
@@ -98,7 +103,9 @@ set(FULL_RELEASE_CXX_FLAGS
 	-mavx
 	-march=native
 	-fconcepts-diagnostics-depth=3
+	-fno-exceptions
 	-fno-math-errno
+	-fno-rtti
 	-fno-trapping-math
 	-fopt-info-vec-all
 	-fvisibility=hidden
@@ -131,9 +138,43 @@ else()
 endif()
 message(STATUS "CXX Flags: ${CXX_FLAGS}")
 
+# Output directories
+set(OUTPUT_DIR ${CMAKE_BINARY_DIR}/bin/${OUT_TAIL_DIR})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${OUTPUT_DIR})
+
+include_directories(
+    ../solver_suite
+    ../solver_suite/Allocators/
+    ../solver_suite/DataTypes/
+    ../solver_suite/Utility/
+)
+
+# Source files
+file(GLOB_RECURSE SRC_FILES ./*.t.cpp)
+
+# Optional features
+if (NOT DEFINED ENABLE_SANITIZERS AND CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(default_enable_sanitizers ON)
+else()
+    set(default_enable_sanitizers OFF)
+endif()
+
+if(ENABLE_SANITIZERS)
+    list(APPEND CXX_FLAGS ${SANITIZER_FLAGS})
+    list(APPEND LINK_FLAGS ${SANITIZER_FLAGS})
+endif()
+
+add_executable(dvec_alloc ./dvec_alloc.t.cpp)
+target_compile_options(dvec_alloc PRIVATE ${CXX_FLAGS})
+#target_link_libraries(dvec_alloc PRIVATE tbb)
+target_link_options(dvec_alloc PRIVATE ${LINK_FLAGS})
+
+add_executable(svector_dbuf_alloc ./svec_dbuf_alloc.t.cpp)
+target_compile_options(svector_dbuf_alloc PRIVATE ${CXX_FLAGS})
+target_link_options(svector_dbuf_alloc PRIVATE ${LINK_FLAGS})
+
+
 # Build messages
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 message(STATUS "Output directory: ${OUTPUT_DIR}")
 message(STATUS "Sanitizers: ${ENABLE_SANITIZERS}")
-message(STATUS "Boost logging: ${BOOST_LOGGING}")
-message(STATUS "Fast math: ${FFAST_MATH}")

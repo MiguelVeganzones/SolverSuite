@@ -142,8 +142,8 @@ class random_distribution
 {
 public:
     using random_engine_t                              = std::mt19937_64;
-    inline static constexpr auto distribution_category = Distribution;
-    inline static constexpr auto discretizaton_policy  = Discretization_Policy;
+    static constexpr auto distribution_category = Distribution;
+    static constexpr auto discretizaton_policy  = Discretization_Policy;
     using distribution_impl_type = impl::distribution<T, distribution_category>;
     using distribution_t         = typename distribution_impl_type::distribution_t;
     using impl_result_type       = typename distribution_t::result_type;

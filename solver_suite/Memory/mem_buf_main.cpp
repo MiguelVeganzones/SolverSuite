@@ -2,7 +2,7 @@
 #include "buffer_interface.hpp"
 #include "debug_allocators.hpp"
 #include "monotonic_allocator.hpp"
-#include "uniform_monotonic_multipool_allocator.hpp"
+#include "uniform_multibuffer.hpp"
 #include <algorithm>
 #include <cmath>
 #include <iostream>
@@ -26,28 +26,26 @@ int main()
     std::cout << interface.underlying_size_y() << '\n';
     std::cout << interface.underlying_size_x() << '\n';
 
-    auto allocator = allocators::dynamic_uniform_monotonic_multipool_allocator<F, 5>(
-        interface.underlying_flat_size()
-    );
-    const auto n   = interface.underlying_flat_size();
-    auto       ptr = allocator.allocate(n);
+    const auto n           = interface.underlying_flat_size();
+    auto       multibuffer = multibuffer::dynamic_uniform_multibuffer<F, 5>(n);
+
+    auto ptr = multibuffer.buffer(0);
 
     std::span buffer(ptr, n);
-    std::ranges::fill(buffer, std::numeric_limits<float>::quiet_NaN());
 
     std::cout << '\n';
     for (auto i = 0uz; i != N; ++i)
     {
         for (auto j = 0uz; j != D; ++j)
         {
-            buffer[interface.translate_idx(i, j)] = float(i);
+            buffer[interface.flat_projection(i, j)] = float(i);
         }
     }
     for (auto i = 0uz; i != N; ++i)
     {
         for (auto j = 0uz; j != D; ++j)
         {
-            std::cout << buffer[interface.translate_idx(i, j)] << ' ';
+            std::cout << buffer[interface.flat_projection(i, j)] << ' ';
         }
         std::cout << '\n';
     }

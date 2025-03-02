@@ -18,7 +18,7 @@ struct is_dynamic_extent<T> : std::true_type
 };
 
 template <auto T>
-inline constexpr bool is_dynamic_extent_v = is_dynamic_extent<T>::value;
+constexpr bool is_dynamic_extent_v = is_dynamic_extent<T>::value;
 
 
 } // namespace buffers::buffer_traits

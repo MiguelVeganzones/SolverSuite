@@ -1,4 +1,5 @@
 -I./solver_suite/Utility
 -I./solver_suite/Allocators
 -I./solver_suite/Memory
+-I./solver_suite/DataTypes/
 -std=c++2b

@@ -6,7 +6,7 @@ namespace utility::cx_functions
 
 // Do not use this for anything serious
 template <typename T>
-inline constexpr auto pow(T base, T exp) noexcept -> T
+constexpr auto pow(T base, T exp) noexcept -> T
 {
     T result{ 1 };
     for (; exp > 0; --exp)

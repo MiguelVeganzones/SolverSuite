@@ -21,11 +21,11 @@ public:
     using size_type                                         = std::size_t;
     using index_t                                           = std::size_t;
     using layout_policy_t                                   = buffer_config::LayoutPolicy;
-    inline static constexpr size_type s_size_y              = Size_Y;
-    inline static constexpr size_type s_size_x              = Size_X;
-    inline static constexpr auto      s_layout_policy       = Layout_Policy;
-    inline static constexpr auto      s_layout_minor_stride = Layout_Minor_Stride;
-    inline static constexpr size_type s_underlying_size_y   = [] constexpr {
+    static constexpr size_type s_size_y              = Size_Y;
+    static constexpr size_type s_size_x              = Size_X;
+    static constexpr auto      s_layout_policy       = Layout_Policy;
+    static constexpr auto      s_layout_minor_stride = Layout_Minor_Stride;
+    static constexpr size_type s_underlying_size_y   = [] constexpr {
         if constexpr (s_layout_policy == layout_policy_t::layout_row_major)
         {
             return Size_Y;
@@ -39,7 +39,7 @@ public:
             static_assert(false, "Layout policy not recognized or not implemented");
         }
     }();
-    inline static constexpr size_type s_underlying_size_x = [] constexpr {
+    static constexpr size_type s_underlying_size_x = [] constexpr {
         if constexpr (s_layout_policy == layout_policy_t::layout_row_major)
         {
             static_assert(
@@ -68,55 +68,55 @@ public:
     static_assert(s_size_y > 0);
 
     [[nodiscard, gnu::const]]
-    inline static constexpr auto capacity_y() noexcept -> size_type
+    static constexpr auto capacity_y() noexcept -> size_type
     {
         return size_y();
     }
 
     [[nodiscard, gnu::const]]
-    inline static constexpr auto capacity_x() noexcept -> size_type
+    static constexpr auto capacity_x() noexcept -> size_type
     {
         return size_x();
     }
 
     [[nodiscard, gnu::const]]
-    inline static constexpr auto size_x() noexcept -> size_type
+    static constexpr auto size_x() noexcept -> size_type
     {
         return s_size_x;
     }
 
     [[nodiscard, gnu::const]]
-    inline static constexpr auto size_y() noexcept -> size_type
+    static constexpr auto size_y() noexcept -> size_type
     {
         return s_size_y;
     }
 
     [[nodiscard, gnu::const]]
-    inline static constexpr auto flat_size() noexcept -> size_type
+    static constexpr auto flat_size() noexcept -> size_type
     {
         return size_y() * size_x();
     }
 
     [[nodiscard, gnu::const]]
-    inline static constexpr auto underlying_size_x() noexcept -> size_type
+    static constexpr auto underlying_size_x() noexcept -> size_type
     {
         return s_underlying_size_x;
     }
 
     [[nodiscard, gnu::const]]
-    inline static constexpr auto underlying_size_y() noexcept -> size_type
+    static constexpr auto underlying_size_y() noexcept -> size_type
     {
         return s_underlying_size_y;
     }
 
     [[nodiscard, gnu::const]]
-    inline static constexpr auto underlying_flat_size() noexcept -> size_type
+    static constexpr auto underlying_flat_size() noexcept -> size_type
     {
         return underlying_size_y() * underlying_size_x();
     }
 
     [[nodiscard, gnu::const]]
-    inline constexpr auto translate_idx(index_t idx_y, index_t idx_x) const noexcept
+    constexpr auto flat_projection(index_t idx_y, index_t idx_x) const noexcept
         -> index_t
     {
         assert(idx_y < s_size_y);
@@ -143,8 +143,8 @@ public:
     using size_type                            = std::size_t;
     using index_t                              = std::size_t;
     using layout_policy_t                      = buffer_config::LayoutPolicy;
-    inline static constexpr size_type s_size_y = std::dynamic_extent;
-    inline static constexpr size_type s_size_x = Size_X;
+    static constexpr size_type s_size_y = std::dynamic_extent;
+    static constexpr size_type s_size_x = Size_X;
     static_assert(s_size_x > 0);
 
 public:
@@ -185,55 +185,55 @@ public:
     }
 
     [[nodiscard]]
-    inline constexpr auto capacity_y() const noexcept -> size_type
+    constexpr auto capacity_y() const noexcept -> size_type
     {
         return capacity_y_;
     }
 
     [[nodiscard, gnu::const]]
-    inline static constexpr auto capacity_x() noexcept -> size_type
+    static constexpr auto capacity_x() noexcept -> size_type
     {
         return s_size_x;
     }
 
     [[nodiscard]]
-    inline constexpr auto size_y() const noexcept -> size_type
+    constexpr auto size_y() const noexcept -> size_type
     {
         return size_y_;
     }
 
     [[nodiscard, gnu::const]]
-    inline static constexpr auto size_x() noexcept -> size_type
+    static constexpr auto size_x() noexcept -> size_type
     {
         return s_size_x;
     }
 
     [[nodiscard]]
-    inline constexpr auto flat_size() const noexcept -> size_type
+    constexpr auto flat_size() const noexcept -> size_type
     {
         return size_y_ * s_size_x;
     }
 
     [[nodiscard]]
-    inline constexpr auto underlying_size_x() const noexcept -> size_type
+    constexpr auto underlying_size_x() const noexcept -> size_type
     {
         return underlying_size_x_;
     }
 
     [[nodiscard]]
-    inline constexpr auto underlying_size_y() const noexcept -> size_type
+    constexpr auto underlying_size_y() const noexcept -> size_type
     {
         return underlying_size_y_;
     }
 
     [[nodiscard]]
-    inline constexpr auto underlying_flat_size() const noexcept -> size_type
+    constexpr auto underlying_flat_size() const noexcept -> size_type
     {
         return underlying_size_x_ * underlying_size_y_;
     }
 
     [[nodiscard, gnu::const]]
-    inline constexpr auto translate_idx(index_t idx_y, index_t idx_x) const noexcept
+    constexpr auto flat_projection(index_t idx_y, index_t idx_x) const noexcept
         -> index_t
     {
         assert(idx_y < size_y_);
@@ -257,8 +257,8 @@ public:
     using size_type                            = std::size_t;
     using index_t                              = std::size_t;
     using layout_policy_t                      = buffer_config::LayoutPolicy;
-    inline static constexpr size_type s_size_y = std::dynamic_extent;
-    inline static constexpr size_type s_size_x = std::dynamic_extent;
+    static constexpr size_type s_size_y = std::dynamic_extent;
+    static constexpr size_type s_size_x = std::dynamic_extent;
 
 public:
     constexpr dynamic_shape(
@@ -304,55 +304,55 @@ public:
     }
 
     [[nodiscard]]
-    inline constexpr auto capacity_y() const noexcept -> size_type
+    constexpr auto capacity_y() const noexcept -> size_type
     {
         return capacity_y_;
     }
 
     [[nodiscard]]
-    inline constexpr auto capacity_x() const noexcept -> size_type
+    constexpr auto capacity_x() const noexcept -> size_type
     {
         return capacity_x_;
     }
 
     [[nodiscard]]
-    inline constexpr auto size_y() const noexcept -> size_type
+    constexpr auto size_y() const noexcept -> size_type
     {
         return size_y_;
     }
 
     [[nodiscard]]
-    inline constexpr auto size_x() const noexcept -> size_type
+    constexpr auto size_x() const noexcept -> size_type
     {
         return size_x_;
     }
 
     [[nodiscard]]
-    inline constexpr auto flat_size() const noexcept -> size_type
+    constexpr auto flat_size() const noexcept -> size_type
     {
         return size_y_ * size_x_;
     }
 
     [[nodiscard]]
-    inline constexpr auto underlying_size_x() const noexcept -> size_type
+    constexpr auto underlying_size_x() const noexcept -> size_type
     {
         return underlying_size_x_;
     }
 
     [[nodiscard]]
-    inline constexpr auto underlying_size_y() const noexcept -> size_type
+    constexpr auto underlying_size_y() const noexcept -> size_type
     {
         return underlying_size_y_;
     }
 
     [[nodiscard]]
-    inline constexpr auto underlying_flat_size() const noexcept -> size_type
+    constexpr auto underlying_flat_size() const noexcept -> size_type
     {
         return underlying_size_x_ * underlying_size_y_;
     }
 
     [[nodiscard, gnu::const]]
-    inline constexpr auto translate_idx(index_t idx_y, index_t idx_x) const noexcept
+    constexpr auto flat_projection(index_t idx_y, index_t idx_x) const noexcept
         -> index_t
     {
         assert(idx_y < size_y_);

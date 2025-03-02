@@ -24,7 +24,7 @@ struct is_initializable<T> : std::true_type
 };
 
 template <typename T>
-inline constexpr bool is_initializable_v = is_initializable<T>::value;
+constexpr bool is_initializable_v = is_initializable<T>::value;
 
 } // namespace initializable::detail
 
@@ -62,7 +62,7 @@ struct is_manual_tick_clock<T> : std::true_type
 };
 
 template <typename T>
-inline constexpr bool is_manual_tick_clock_v = is_manual_tick_clock<T>::value;
+constexpr bool is_manual_tick_clock_v = is_manual_tick_clock<T>::value;
 
 } // namespace manual_clock_impl
 

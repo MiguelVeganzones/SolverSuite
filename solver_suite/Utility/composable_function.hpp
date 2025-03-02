@@ -35,7 +35,7 @@ public:
 
     template <typename... Args>
         requires std::is_invocable_v<function_type, Args...>
-    inline constexpr auto operator()(Args&&... args) const
+    constexpr auto operator()(Args&&... args) const
         noexcept(noexcept(std::invoke(fn_, std::forward<Args>(args)...)))
             -> decltype(auto)
     {
@@ -85,7 +85,7 @@ public:
                  std::is_invocable_v<
                      nested_type,
                      std::invoke_result_t<function_type, Args...>>
-    inline constexpr auto operator()(Args&&... args) const
+    constexpr auto operator()(Args&&... args) const
         noexcept(noexcept(std::invoke(fn_, std::forward<Args>(args)...)))
             -> decltype(auto)
     {

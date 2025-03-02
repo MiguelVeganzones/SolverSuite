@@ -18,7 +18,7 @@ template <std::floating_point F>
 class unsigned_normalized
 {
 public:
-    inline static constexpr auto s_interval = interval<F>{ 0, 1 };
+    static constexpr auto s_interval = interval<F>{ 0, 1 };
 
     constexpr explicit unsigned_normalized(F value) noexcept :
         value_(std::clamp(value, s_interval.min, s_interval.max))
@@ -68,7 +68,7 @@ public:
 
 private:
     [[nodiscard]]
-    inline static constexpr auto clamp_impl(value_type value, range_type range) noexcept
+    static constexpr auto clamp_impl(value_type value, range_type range) noexcept
         -> value_type
     {
         return clamp(value, range);

@@ -13,7 +13,11 @@ void* operator new(std::size_t sz)
 
     if (void* ptr = std::malloc(sz)) return ptr;
 
+#ifdef __cpp_exceptions
     throw std::bad_alloc{}; // required by [new.delete.single]/3
+#else
+    std::terminate();
+#endif
 }
 
 // no inline, required by [replacement.functions]/3
@@ -24,7 +28,11 @@ void* operator new[](std::size_t sz)
 
     if (void* ptr = std::malloc(sz)) return ptr;
 
+#ifdef __cpp_exceptions
     throw std::bad_alloc{}; // required by [new.delete.single]/3
+#else
+    std::terminate();
+#endif
 }
 
 void operator delete(void* ptr) noexcept

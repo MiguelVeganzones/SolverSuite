@@ -1,99 +1,155 @@
 #pragma once
 
+#include <cassert>
 #include <cstddef>
 #include <cstdint>
-#include <iterator>
+#include <functional>
+#include <type_traits>
+
+#ifndef NDEBUG
+
+#ifdef DEBUG_PRINT
+#include <iostream>
+#endif
+
+#ifndef ALLOCATOR_DEBUG_NAN_INITIALIZE
+#define ALLOCATOR_DEBUG_INITIALIZE 1
+#if ALLOCATOR_DEBUG_INITIALIZE
+#include <algorithm>
+#include <limits>
+// #define ALLOCATOR_DEBUG_INITIALIZE_VALUE std::numeric_limits<value_type>::quiet_NaN
+#define ALLOCATOR_DEBUG_INITIALIZE_VALUE std::numeric_limits<value_type>::quiet_NaN()
+#endif
+#endif
+
+#endif
 
 namespace allocators
 {
 
-template <std::size_t N>
-class stack_allocator
+template <typename T>
+    requires std::is_trivially_destructible_v<T>
+class dynamic_stack_allocator
 {
-private:
-    inline static constexpr auto alignment = alignof(std::max_align_t);
-
 public:
-    using size_type                          = std::size_t;
-    using memory_address_t                   = std::byte*;
-    inline static constexpr size_type s_size = N;
+    using size_type       = std::size_t;
+    using value_type      = std::remove_cvref_t<T>;
+    using pointer         = value_type*;
+    using const_pointer   = value_type const*;
+    using reference       = value_type&;
+    using const_reference = value_type const&;
+    using difference_type = std::ptrdiff_t;
 
-public:
-    constexpr stack_allocator() noexcept                       = default;
-    constexpr stack_allocator(stack_allocator const&) noexcept = default;
-    constexpr stack_allocator(stack_allocator&&) noexcept      = default;
-    constexpr auto operator=(stack_allocator const&) noexcept
-        -> stack_allocator&                                                  = default;
-    constexpr auto operator=(stack_allocator&&) noexcept -> stack_allocator& = default;
-    ~stack_allocator() noexcept                                              = default;
+    template <typename U>
+    struct rebind
+    {
+        using other = dynamic_stack_allocator<U>;
+    };
+
+    dynamic_stack_allocator(size_type n) noexcept
+        : buffer_{ new T[n] }
+        , size_{ n }
+    {
+        assert(n > 0);
+    }
+
+    ~dynamic_stack_allocator() noexcept
+    {
+        if (buffer_ != nullptr) [[likely]]
+        {
+            delete[] buffer_;
+            buffer_ = pointer();
+        }
+    }
 
     constexpr auto reset() noexcept -> void
     {
-        ptr_ = buffer_;
-    }
-
-    [[nodiscard, gnu::const]]
-    inline static constexpr auto size() noexcept -> size_type
-    {
-        return s_size;
+        cursor_ = size_type{};
     }
 
     [[nodiscard]]
-    inline constexpr auto used() const noexcept -> size_type
+    constexpr auto allocate(size_type n) noexcept -> pointer
     {
-        return std::distance(buffer_, ptr_);
-    }
-
-    [[nodiscard]]
-    inline constexpr auto allocate(size_type n) noexcept -> memory_address_t
-    {
-        const auto aligned_n       = align_up(n);
-        const auto available_bytes = static_cast<size_type>(buffer_ + N - ptr_);
-        if (available_bytes >= aligned_n)
+#ifdef DEBUG_PRINT
+        std::cout << "Allocating " << n << " elements. Total size: " << n * sizeof(T)
+                  << '\n';
+#endif
+        if (n == 0) [[unlikely]]
         {
-            auto* ret = ptr_;
-            ptr_ += aligned_n;
-            return ret;
+            return pointer();
+        }
+        pointer ret;
+        if (n > available()) [[unlikely]]
+        {
+            ret = new value_type[n];
         }
         else
         {
-            return static_cast<std::byte*>(::operator new(n));
+            ret = static_cast<pointer>(&buffer_[cursor_]);
+            cursor_ += n;
         }
+#if ALLOCATOR_DEBUG_INITIALIZE
+        std::fill(ret, ret + n, ALLOCATOR_DEBUG_INITIALIZE_VALUE);
+#endif
+        return ret;
     }
 
-    inline constexpr auto deallocate(memory_address_t p, std::size_t n) noexcept -> void
+    constexpr auto deallocate(pointer p, size_type n) noexcept -> void
     {
+#ifdef DEBUG_PRINT
+        std::cout << "Deallocating " << n << " elements at " << p
+                  << ". Total size: " << n * sizeof(T) << '\n';
+#endif
         if (pointer_in_buffer(p))
         {
-            n = align_up(n);
-            if (p + n == ptr_)
+#ifdef DEBUG_PRINT
+            std::cout << "Deallocated from buffer\n";
+#endif
+            if (&p[n] == &buffer_[cursor_])
             {
-                ptr_ = p;
+                [[assume(cursor_ >= n)]];
+                cursor_ -= n;
             }
         }
         else
         {
+#ifdef DEBUG_PRINT
+            std::cout << "Backup allocator dealocates\n";
+#endif
             ::operator delete(p);
         }
     }
 
-private:
-    [[nodiscard, gnu::const]]
-    inline static constexpr auto align_up(size_type n) noexcept -> size_type
+    [[nodiscard]]
+    constexpr auto max_size() const noexcept -> size_type
     {
-        return (n + (alignment - 1) & ~(alignment - 1));
+        return size_;
     }
 
-    [[nodiscard, gnu::const]]
-    inline constexpr auto pointer_in_buffer(const memory_address_t p) -> bool
+    [[nodiscard]]
+    constexpr auto used() const noexcept -> size_type
     {
-        return std::uintptr_t(p) >= std::uintptr_t(buffer_) &&
-               std::uintptr_t(p) < std::uintptr_t(buffer_) + s_size;
+        return cursor_;
+    }
+
+    [[nodiscard]]
+    constexpr auto available() const noexcept -> size_type
+    {
+        return max_size() - used();
     }
 
 private:
-    alignas(alignment) std::byte buffer_[size];
-    memory_address_t ptr_{};
+    [[nodiscard]]
+    constexpr auto pointer_in_buffer(const_pointer p) const -> bool
+    {
+        return std::less_equal<const_pointer>{}(buffer_, p) &&
+               std::less<const_pointer>{}(p, buffer_ + size_);
+    }
+
+private:
+    pointer   buffer_;
+    size_type size_;
+    size_type cursor_{};
 };
 
 } // namespace allocators

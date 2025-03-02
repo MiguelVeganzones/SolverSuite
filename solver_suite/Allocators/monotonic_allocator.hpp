@@ -5,21 +5,33 @@
 #include <exception>
 #include <type_traits>
 
+#ifndef ALLOCATOR_DEBUG_NAN_INITIALIZE
+#ifndef NDEBUG
+#define ALLOCATOR_DEBUG_INITIALIZE 1
+#if ALLOCATOR_DEBUG_INITIALIZE
+#include <algorithm>
+#include <limits>
+#define ALLOCATOR_DEBUG_INITIALIZE_VALUE std::numeric_limits<value_type>::quiet_NaN()
+#endif
+#endif
+#endif
+
 namespace allocators
 {
 
 template <typename T, std::size_t N>
+    requires std::is_trivially_destructible_v<T>
 class static_monotonic_allocator
 {
 public:
-    using size_type                   = std::size_t;
-    using value_type                  = std::remove_cvref_t<T>;
-    using pointer                     = value_type*;
-    using const_pointer               = value_type const*;
-    using reference                   = value_type&;
-    using const_reference             = value_type const&;
-    using difference_type             = std::ptrdiff_t;
-    inline static constexpr auto size = N;
+    using size_type            = std::size_t;
+    using value_type           = std::remove_cvref_t<T>;
+    using pointer              = value_type*;
+    using const_pointer        = value_type const*;
+    using reference            = value_type&;
+    using const_reference      = value_type const&;
+    using difference_type      = std::ptrdiff_t;
+    static constexpr auto size = N;
 
     template <typename U>
     struct rebind
@@ -33,7 +45,7 @@ public:
     }
 
     [[nodiscard]]
-    inline constexpr auto allocate(size_type n) noexcept -> pointer
+    constexpr auto allocate(size_type n) noexcept -> pointer
     {
         if (n == 0) [[unlikely]]
         {
@@ -48,28 +60,31 @@ public:
         }
         auto ret = static_cast<pointer>(&buffer_[cursor_]);
         cursor_ += n;
+#if ALLOCATOR_DEBUG_INITIALIZE
+        std::fill(ret, ret + n, ALLOCATOR_DEBUG_INITIALIZE_VALUE);
+#endif
         return ret;
     }
 
-    inline constexpr auto deallocate(pointer, size_type) noexcept -> void
+    constexpr auto deallocate(pointer, size_type) noexcept -> void
     {
         // Monotonic allocators do not deallocate
     }
 
     [[nodiscard, gnu::const]]
-    inline static constexpr auto max_size() noexcept -> size_type
+    static constexpr auto max_size() noexcept -> size_type
     {
         return size;
     }
 
     [[nodiscard]]
-    inline constexpr auto used() const noexcept -> size_type
+    constexpr auto used() const noexcept -> size_type
     {
         return cursor_;
     }
 
     [[nodiscard]]
-    inline constexpr auto available() const noexcept -> size_type
+    constexpr auto available() const noexcept -> size_type
     {
         return max_size() - used();
     }
@@ -80,6 +95,7 @@ private:
 };
 
 template <typename T>
+    requires std::is_trivially_destructible_v<T>
 class dynamic_monotonic_allocator
 {
 public:
@@ -119,7 +135,7 @@ public:
     }
 
     [[nodiscard]]
-    inline constexpr auto allocate(size_type n) noexcept -> pointer
+    constexpr auto allocate(size_type n) noexcept -> pointer
     {
         if (n == 0) [[unlikely]]
         {
@@ -134,36 +150,39 @@ public:
         }
         auto ret = static_cast<pointer>(&buffer_[cursor_]);
         cursor_ += n;
+#if ALLOCATOR_DEBUG_INITIALIZE
+        std::fill(ret, ret + n, ALLOCATOR_DEBUG_INITIALIZE_VALUE);
+#endif
         return ret;
     }
 
-    inline constexpr auto deallocate(pointer, size_type) noexcept -> void
+    constexpr auto deallocate(pointer, size_type) noexcept -> void
     {
         // Monotonic allocators do not deallocate
     }
 
     [[nodiscard]]
-    inline constexpr auto max_size() const noexcept -> size_type
+    constexpr auto max_size() const noexcept -> size_type
     {
         return size_;
     }
 
     [[nodiscard]]
-    inline constexpr auto used() const noexcept -> size_type
+    constexpr auto used() const noexcept -> size_type
     {
         return cursor_;
     }
 
     [[nodiscard]]
-    inline constexpr auto available() const noexcept -> size_type
+    constexpr auto available() const noexcept -> size_type
     {
         return max_size() - used();
     }
 
 private:
-    value_type* buffer_;
-    size_type   size_;
-    size_type   cursor_{};
+    pointer   buffer_;
+    size_type size_;
+    size_type cursor_{};
 };
 
 } // namespace allocators
