@@ -162,10 +162,6 @@ public:
     [[nodiscard]]
     constexpr auto size() const noexcept -> size_type
     {
-        if (begin_ == nullptr)
-        {
-            return 0uz;
-        }
         return static_cast<size_type>(std::distance(begin_, end_));
     }
 

@@ -66,6 +66,8 @@ int main()
         std::cout << v5 << '\n';
     }
 
+    std::cout << "d: " << std::distance((int*)(0), (int*)(0)) << '\n';
+
     std::cout << "Goodbye global allocator world\n";
 
     return 0;
