@@ -1,3 +1,4 @@
+#include "random.hpp"
 #define DEBUG_PRINT
 
 #include "debug_allocators.hpp"
@@ -39,7 +40,7 @@ int main()
     vector_f v2;
     vector_f v3;
     // vector_ndc v4; // Invalid, no default ctor
-    vector_ndc v6 = vector_ndc::filled(4.f);
+    vector_ndc v6 = vector_ndc::filled(utility::random::srandom::randfloat<F>);
 
     std::cout << v1 << '\n';
     std::cout << v6 << '\n';

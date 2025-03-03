@@ -14,7 +14,21 @@ constexpr auto array_factory(Fn&& fn, Args&&... args) noexcept
 {
     return
         []<std::size_t... Indices>(Fn&& f, Args&&... a, std::index_sequence<Indices...>) {
-            return std::array<T, N>{ f(Indices, a...)... };
+            return std::array<T, N>{ f(Indices, std::forward<Args>(a)...)... };
+        }(std::forward<Fn>(fn), std::forward<Args>(args)..., std::make_index_sequence<N>{}
+        );
+}
+
+template <typename T, std::size_t N, typename Fn, typename... Args>
+    requires std::is_invocable_r_v<T, Fn, Args...>
+[[nodiscard]]
+constexpr auto array_factory(Fn&& fn, Args&&... args) noexcept -> std::array<T, N>
+{
+    return
+        []<std::size_t... Indices>(Fn&& f, Args&&... a, std::index_sequence<Indices...>) {
+            return std::array<T, N>{
+                { (static_cast<void>(Indices), f(std::forward<Args>(a)...))... }
+            };
         }(std::forward<Fn>(fn), std::forward<Args>(args)..., std::make_index_sequence<N>{}
         );
 }

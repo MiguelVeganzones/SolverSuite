@@ -34,7 +34,10 @@ struct static_vector
     }
 
     static constexpr auto filled(auto&& fn, auto&&... args) noexcept -> static_vector
-        requires std::is_invocable_r_v<T, decltype(fn), decltype(args)...>
+        requires std::is_invocable_v<decltype(fn), decltype(args)...> &&
+                 std::constructible_from<
+                     T,
+                     std::invoke_result_t<decltype(fn), decltype(args)...>>
     {
         return static_vector{
             utility::compile_time_utility::array_factory<value_type, size>(
