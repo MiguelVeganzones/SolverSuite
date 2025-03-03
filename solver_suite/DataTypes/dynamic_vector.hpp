@@ -131,6 +131,18 @@ public:
         if (begin_) allocator().deallocate(begin_, size());
     }
 
+    constexpr auto leak_resize(size_type n) & noexcept -> void
+    {
+        if (size() >= n)
+        {
+            end_ = begin_ + n;
+        }
+        else
+        {
+            resize(n);
+        }
+    }
+
     constexpr auto resize(size_type n) noexcept -> void
     {
         if (begin_ != nullptr) [[unlikely]]
