@@ -12,11 +12,14 @@ int main()
     using F         = float;
     using Allocator = allocators::dynamic_stack_allocator<F>;
     using vector    = data_types::dynamic_containers::dynamic_vector<F, Allocator>;
+    Allocator allocator(100);
+    vector::set_allocator(&allocator);
     static_assert(std::ranges::range<vector>);
-    vector v1(5);
-    vector v2(50);
-    vector v3(5);
-    vector v4(5);
+    const auto n = 5;
+    vector     v1(n);
+    vector     v2(50);
+    vector     v3(n);
+    vector     v4(n);
 
     std::cout << v1 << '\n';
 
@@ -25,7 +28,7 @@ int main()
     std::cout << &v3[0] << '\n';
     std::cout << &v4[0] << '\n';
 
-    for (auto i = 0; i != 5; ++i)
+    for (auto i = 0; i != n; ++i)
     {
         v1[i] = float(i);
         v3[i] = float(i * i);
@@ -38,6 +41,8 @@ int main()
         vector v5(5);
         v5 = v1 + v3;
 
+        std::cout << v1 << '\n';
+        std::cout << v3 << '\n';
         std::cout << v5 << '\n';
     }
     std::cout << "Goodbye allocator world\n";

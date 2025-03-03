@@ -8,7 +8,9 @@
 #include <span>
 #include <type_traits>
 
-#define DISABLE_MOVE_COPY
+#define DISABLE_MOVE
+
+// #define DISABLE_COPY
 
 namespace data_types::dynamic_containers
 {
@@ -27,11 +29,25 @@ public:
     using iterator       = pointer;
 
 private:
-    inline static allocator_t s_allocator = allocator_t(100);
+    inline static allocator_t* s_allocator_ptr;
+
+public:
+    // TODO: Can you change allocator?
+    static auto set_allocator(allocator_t* p) noexcept -> void
+    {
+        s_allocator_ptr = p;
+    }
+
+    [[nodiscard]]
+    inline static auto allocator() -> allocator_t&
+    {
+        assert(s_allocator_ptr != nullptr);
+        return *s_allocator_ptr;
+    }
 
 public:
     constexpr dynamic_vector(size_type size)
-        : begin_{ s_allocator.allocate(size) }
+        : begin_{ allocator().allocate(size) }
         , end_{ begin_ + size }
     {
     }
@@ -47,25 +63,15 @@ public:
         return *this;
     }
 
-#ifdef DISABLE_MOVE_COPY
+#ifdef DISABLE_COPY
     constexpr dynamic_vector(dynamic_vector const&) noexcept                    = delete;
-    constexpr dynamic_vector(dynamic_vector&&) noexcept                         = delete;
     constexpr auto operator=(dynamic_vector const&) noexcept -> dynamic_vector& = delete;
-    constexpr auto operator=(dynamic_vector&&) noexcept -> dynamic_vector&      = delete;
 #else
     constexpr dynamic_vector(dynamic_vector const& other) noexcept
-        : begin_{ s_allocator.allocate(other.size()) }
+        : begin_{ allocator().allocate(other.size()) }
         , end_{ begin_ + other.size() }
     {
         std::ranges::copy(other, this->begin_);
-    }
-
-    constexpr dynamic_vector(dynamic_vector&& other) noexcept
-        : begin_(other.begin_)
-        , end_(begin_ + other.size())
-    {
-        other.begin_ = nullptr;
-        other.end_   = nullptr;
     }
 
     constexpr auto operator=(dynamic_vector const& other) noexcept -> dynamic_vector&
@@ -76,22 +82,35 @@ public:
             {
                 if (begin())
                 {
-                    s_allocator.deallocate(begin_, size());
+                    allocator().deallocate(begin_, size());
                     begin_ = nullptr;
                 }
-                begin_ = s_allocator.allocate(other.size());
+                begin_ = allocator().allocate(other.size());
                 end_   = begin_ + other.size();
             }
             std::ranges::copy(other, begin_);
         }
         return *this;
     }
+#endif
+
+#ifdef DISABLE_MOVE
+    constexpr dynamic_vector(dynamic_vector&&) noexcept                    = delete;
+    constexpr auto operator=(dynamic_vector&&) noexcept -> dynamic_vector& = delete;
+#else
+    constexpr dynamic_vector(dynamic_vector&& other) noexcept
+        : begin_(other.begin_)
+        , end_(begin_ + other.size())
+    {
+        other.begin_ = nullptr;
+        other.end_   = nullptr;
+    }
 
     constexpr auto operator=(dynamic_vector&& other) noexcept -> dynamic_vector&
     {
         if (this != &other)
         {
-            if (begin_) s_allocator.deallocate(begin_, size());
+            if (begin_) allocator().deallocate(begin_, size());
             begin_       = other.begin_;
             end_         = other.end_;
             other.begin_ = nullptr;
@@ -103,7 +122,7 @@ public:
 
     ~dynamic_vector() noexcept
     {
-        if (begin_) s_allocator.deallocate(begin_, size());
+        if (begin_) allocator().deallocate(begin_, size());
     }
 
     [[nodiscard]]
@@ -198,7 +217,7 @@ auto operator<<(std::ostream& os, dynamic_vector<T, Allocator> const& v) noexcep
 {
     os << "{ ";
     const auto size = std::ranges::size(v);
-    for (std::size_t n{ 0 }; auto const e : v)
+    for (std::size_t n{ 0 }; auto const& e : v)
     {
         os << e << (++n != size ? ", " : " ");
     }

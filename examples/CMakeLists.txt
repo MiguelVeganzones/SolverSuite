@@ -149,9 +149,6 @@ include_directories(
     ../solver_suite/Utility/
 )
 
-# Source files
-file(GLOB_RECURSE SRC_FILES ./*.t.cpp)
-
 # Optional features
 if (NOT DEFINED ENABLE_SANITIZERS AND CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(default_enable_sanitizers ON)
@@ -164,15 +161,17 @@ if(ENABLE_SANITIZERS)
     list(APPEND LINK_FLAGS ${SANITIZER_FLAGS})
 endif()
 
-add_executable(dvec_alloc ./dvec_alloc.t.cpp)
-target_compile_options(dvec_alloc PRIVATE ${CXX_FLAGS})
-#target_link_libraries(dvec_alloc PRIVATE tbb)
-target_link_options(dvec_alloc PRIVATE ${LINK_FLAGS})
-
-add_executable(svector_dbuf_alloc ./svec_dbuf_alloc.t.cpp)
-target_compile_options(svector_dbuf_alloc PRIVATE ${CXX_FLAGS})
-target_link_options(svector_dbuf_alloc PRIVATE ${LINK_FLAGS})
-
+# Source files
+file(GLOB_RECURSE SRC_FILES ./*.t.cpp)
+# Generate executable for all .t.cpp
+set(TEST_DIR "./")
+file(GLOB TEST_FILES "${TEST_DIR}/*.t.cpp")
+foreach(TEST_FILE ${TEST_FILES})
+    get_filename_component(TARGET_NAME ${TEST_FILE} NAME_WE)
+    add_executable(${TARGET_NAME} ${TEST_FILE})
+    target_compile_options(${TARGET_NAME} PRIVATE ${CXX_FLAGS})
+    target_link_options(${TARGET_NAME} PRIVATE ${LINK_FLAGS})
+endforeach()
 
 # Build messages
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")

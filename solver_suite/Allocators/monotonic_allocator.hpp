@@ -12,6 +12,8 @@
 #include <algorithm>
 #include <limits>
 #define ALLOCATOR_DEBUG_INITIALIZE_VALUE std::numeric_limits<value_type>::quiet_NaN()
+#define ALLOCATOR_DEBUG_DEFAULT_ALLOCATE_VALUE                                           \
+    std::numeric_limits<value_type>::quiet_NaN()
 #endif
 #endif
 #endif

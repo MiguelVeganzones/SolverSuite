@@ -1,14 +1,21 @@
 #pragma once
 
 #include "casts.hpp"
+#include "compile_time_utility.hpp"
 #include "static_container_operations.hpp"
 #include <array>
 #include <concepts>
+#include <functional>
+#include <initializer_list>
 #include <iostream>
 #include <type_traits>
 
 namespace data_types::static_containers
 {
+
+struct initialize_internals_placeholder
+{
+};
 
 template <typename T, std::size_t N>
 struct static_vector
@@ -19,6 +26,27 @@ struct static_vector
     using container_t                 = std::array<value_type, size>;
     using const_iterator              = typename container_t::const_iterator;
     using iterator                    = typename container_t::iterator;
+
+    explicit static_vector(initialize_internals_placeholder, auto&&... args) noexcept
+        requires std::constructible_from<T, decltype(args)...>
+        : data_{ utility::compile_time_utility::array_factory<value_type, size>(
+              value_type(std::forward<decltype(args)>(args)...)
+          ) }
+    {
+    }
+
+    static_vector(std::initializer_list<value_type> init) noexcept
+    {
+        assert(init.size() == N);
+        std::ranges::copy(init, std::begin(data_));
+    }
+
+    constexpr static_vector() noexcept                                        = default;
+    constexpr static_vector(static_vector const&) noexcept                    = default;
+    constexpr static_vector(static_vector&&) noexcept                         = default;
+    constexpr auto operator=(static_vector const&) noexcept -> static_vector& = default;
+    constexpr auto operator=(static_vector&&) noexcept -> static_vector&      = default;
+    ~static_vector() noexcept                                                 = default;
 
     [[nodiscard]]
     constexpr auto data(this auto&& self) noexcept -> decltype(auto)
@@ -60,32 +88,56 @@ struct static_vector
 
     constexpr auto operator+=(this auto& self, auto&& other) noexcept -> static_vector&
     {
-        self = self + std::forward<decltype(other)>(other);
+        self.in_place_operator_impl_(std::forward<decltype(other)>(other), std::plus{});
         return self;
     }
 
     constexpr auto operator-=(this auto& self, auto&& other) noexcept -> static_vector&
     {
-        self = self - std::forward<decltype(other)>(other);
+        self.in_place_operator_impl_(std::forward<decltype(other)>(other), std::minus{});
         return self;
     }
 
     constexpr auto operator*=(this auto& self, auto&& other) noexcept -> static_vector&
     {
-        self = self * std::forward<decltype(other)>(other);
+        self.in_place_operator_impl_(
+            std::forward<decltype(other)>(other), std::multiplies{}
+        );
         return self;
     }
 
     constexpr auto operator/=(this auto& self, auto&& other) noexcept -> static_vector&
     {
-        self = self / std::forward<decltype(other)>(other);
+        self.in_place_operator_impl_(
+            std::forward<decltype(other)>(other), std::divides{}
+        );
         return self;
+    }
+
+    constexpr auto in_place_operator_impl_(
+        this auto& a,
+        auto&&     b,
+        auto&&     binary_op
+    ) noexcept -> void
+    {
+        using a_t = std::remove_reference_t<decltype(a)>;
+        using b_t = std::remove_reference_t<decltype(b)>;
+
+        if constexpr (dt_concepts::StaticArray<a_t> && dt_concepts::StaticArray<b_t>)
+        {
+            static_assert(dt_traits::is_same_size_v<a_t, b_t>);
+        }
+
+        for (auto idx = 0uz; idx != std::ranges::size(a); ++idx)
+        {
+            a[idx] = binary_op(a[idx], operation_utils::subscript(b, idx));
+        }
     }
 
     [[nodiscard]]
     constexpr auto operator<=>(static_vector const&) const = default;
 
-    inline constexpr auto assert_in_bounds([[maybe_unused]] std::integral auto const idx
+    inline constexpr auto assert_in_bounds([[maybe_unused]] std::integral auto idx
     ) const noexcept -> void
     {
         assert(idx < utility::casts::safe_cast<decltype(idx)>(size));
@@ -98,7 +150,7 @@ template <typename T, std::size_t N>
 auto operator<<(std::ostream& os, static_vector<T, N> const& v) noexcept -> std::ostream&
 {
     os << "{ ";
-    for (std::size_t n{ 0 }; auto const e : v)
+    for (std::size_t n{ 0 }; auto const& e : v)
     {
         os << e << (++n != N ? ", " : " ");
     }
@@ -111,6 +163,7 @@ auto operator<<(std::ostream& os, static_vector<T, N> const& v) noexcept -> std:
 
 // std::common_type specialization
 namespace std
+
 {
 
 template <typename T, std::size_t N>

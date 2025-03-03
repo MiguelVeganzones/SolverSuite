@@ -95,3 +95,113 @@ auto operator/(auto&& lhs, auto&& rhs) noexcept -> decltype(auto)
 }
 
 } // namespace data_types::dynamic_containers
+
+//
+//
+/*
+  //
+  // class _Expr
+  //
+  template<class _Clos, typename _Tp>
+    class _Expr
+    {
+    public:
+      typedef _Tp value_type;
+
+      _Expr(const _Clos&);
+
+      const _Clos& operator()() const;
+
+      value_type operator[](size_t) const;
+      valarray<value_type> operator[](slice) const;
+      valarray<value_type> operator[](const gslice&) const;
+      valarray<value_type> operator[](const valarray<bool>&) const;
+      valarray<value_type> operator[](const valarray<size_t>&) const;
+
+      _Expr<_UnClos<__unary_plus, std::_Expr, _Clos>, value_type>
+      operator+() const;
+
+      _Expr<_UnClos<__negate, std::_Expr, _Clos>, value_type>
+      operator-() const;
+
+      _Expr<_UnClos<__bitwise_not, std::_Expr, _Clos>, value_type>
+      operator~() const;
+
+      _Expr<_UnClos<__logical_not, std::_Expr, _Clos>, bool>
+      operator!() const;
+
+      size_t size() const;
+      value_type sum() const;
+
+      valarray<value_type> shift(int) const;
+      valarray<value_type> cshift(int) const;
+
+      value_type min() const;
+      value_type max() const;
+
+      valarray<value_type> apply(value_type (*)(const value_type&)) const;
+      valarray<value_type> apply(value_type (*)(value_type)) const;
+
+    private:
+      const _Clos _M_closure;
+    };
+
+  template<class _Clos, typename _Tp>
+    inline
+    _Expr<_Clos, _Tp>::_Expr(const _Clos& __c) : _M_closure(__c) {}
+
+  template<class _Clos, typename _Tp>
+    inline const _Clos&
+    _Expr<_Clos, _Tp>::operator()() const
+    { return _M_closure; }
+
+  template<class _Clos, typename _Tp>
+    inline _Tp
+    _Expr<_Clos, _Tp>::operator[](size_t __i) const
+    { return _M_closure[__i]; }
+
+  template<class _Clos, typename _Tp>
+    inline valarray<_Tp>
+    _Expr<_Clos, _Tp>::operator[](slice __s) const
+    {
+      valarray<_Tp> __v = valarray<_Tp>(*this)[__s];
+      return __v;
+    }
+
+  template<class _Clos, typename _Tp>
+    inline valarray<_Tp>
+    _Expr<_Clos, _Tp>::operator[](const gslice& __gs) const
+    {
+      valarray<_Tp> __v = valarray<_Tp>(*this)[__gs];
+      return __v;
+    }
+
+  template<class _Clos, typename _Tp>
+    inline valarray<_Tp>
+    _Expr<_Clos, _Tp>::operator[](const valarray<bool>& __m) const
+    {
+      valarray<_Tp> __v = valarray<_Tp>(*this)[__m];
+      return __v;
+    }
+
+  template<class _Clos, typename _Tp>
+    inline valarray<_Tp>
+    _Expr<_Clos, _Tp>::operator[](const valarray<size_t>& __i) const
+    {
+      valarray<_Tp> __v = valarray<_Tp>(*this)[__i];
+      return __v;
+    }
+
+  template<class _Clos, typename _Tp>
+    inline size_t
+    _Expr<_Clos, _Tp>::size() const
+    { return _M_closure.size(); }
+
+  template<class _Clos, typename _Tp>
+    inline valarray<_Tp>
+    _Expr<_Clos, _Tp>::shift(int __n) const
+    {
+      valarray<_Tp> __v = valarray<_Tp>(*this).shift(__n);
+      return __v;
+    }
+*/

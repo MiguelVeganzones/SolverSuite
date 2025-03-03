@@ -1,0 +1,7 @@
+Dynamic vector right now is implemented with a begin and end pointer. Adding a
+capacity vector would allow:
+    - Default initialization (we could remove the two constructors in static_array)
+    - Dynamic size within some bounds, which is interesting if simulations would
+      require growing or shrinking their size.
+But would:
+    - Just be a worse implementation of std::vector

@@ -1,8 +1,9 @@
 #pragma once
 
+#include <algorithm>
 #include <cassert>
 #include <cstddef>
-#include <cstdint>
+#include <cstring>
 #include <functional>
 #include <type_traits>
 
@@ -16,9 +17,8 @@
 #define ALLOCATOR_DEBUG_INITIALIZE 1
 #if ALLOCATOR_DEBUG_INITIALIZE
 #include <algorithm>
-#include <limits>
-// #define ALLOCATOR_DEBUG_INITIALIZE_VALUE std::numeric_limits<value_type>::quiet_NaN
-#define ALLOCATOR_DEBUG_INITIALIZE_VALUE std::numeric_limits<value_type>::quiet_NaN()
+#define ALLOCATOR_DEBUG_INITIALIZE_VALUE std::byte{ 0x80 }
+#define ALLOCATOR_DEBUG_DEFAULT_ALLOCATE_VALUE std::byte{ 0xFF }
 #endif
 #endif
 
@@ -51,6 +51,18 @@ public:
         , size_{ n }
     {
         assert(n > 0);
+#if ALLOCATOR_DEBUG_INITIALIZE
+        std::fill_n(
+            (std::byte*)buffer_, size_ * sizeof(T), ALLOCATOR_DEBUG_INITIALIZE_VALUE
+        );
+#endif
+#ifdef DEBUG_PRINT
+        for (auto i = 0uz; i != size_; ++i)
+        {
+            std::cout << buffer_[i];
+        }
+        std::cout << '\n';
+#endif
     }
 
     ~dynamic_stack_allocator() noexcept
@@ -76,7 +88,7 @@ public:
 #endif
         if (n == 0) [[unlikely]]
         {
-            return pointer();
+            return pointer{};
         }
         pointer ret;
         if (n > available()) [[unlikely]]
@@ -89,7 +101,9 @@ public:
             cursor_ += n;
         }
 #if ALLOCATOR_DEBUG_INITIALIZE
-        std::fill(ret, ret + n, ALLOCATOR_DEBUG_INITIALIZE_VALUE);
+        std::fill_n(
+            (std::byte*)ret, n * sizeof(T), ALLOCATOR_DEBUG_DEFAULT_ALLOCATE_VALUE
+        );
 #endif
         return ret;
     }

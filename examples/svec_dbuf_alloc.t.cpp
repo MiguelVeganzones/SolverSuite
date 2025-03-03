@@ -17,6 +17,8 @@ int main()
     using Allocator  = allocators::dynamic_stack_allocator<SVec>;
     using vector     = data_types::dynamic_containers::dynamic_vector<SVec, Allocator>;
     static_assert(std::ranges::range<vector>);
+    Allocator allocator(N * n);
+    vector::set_allocator(&allocator);
     vector v1(n);
     vector v2(50);
     vector v3(n);
@@ -31,8 +33,10 @@ int main()
 
     for (auto i = 0.f; i < float(n); ++i)
     {
-        v1[(int)i] = { i, i, i, i, i, i }; // This works since size is a compile
-                                           // time constant
+        // This works since size is a compile time constant and there is a
+        // std::initializer list constructor (unfortunately)
+        v1[(int)i] = { i, i, i, i, i, i };
+        // This is a better way to fill the arrays
         std::ranges::fill(v3[(int)i], i);
     }
 
