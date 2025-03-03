@@ -29,7 +29,7 @@ public:
     using iterator       = pointer;
 
 private:
-    inline static allocator_t* s_allocator_ptr;
+    inline static allocator_t* s_allocator_ptr = nullptr;
 
 public:
     // TODO: Can you change allocator?
@@ -39,14 +39,20 @@ public:
     }
 
     [[nodiscard]]
-    inline static auto allocator() -> allocator_t&
+    inline static auto allocator() noexcept -> allocator_t&
     {
         assert(s_allocator_ptr != nullptr);
         return *s_allocator_ptr;
     }
 
 public:
-    constexpr dynamic_vector(size_type size)
+    constexpr dynamic_vector() noexcept
+        : begin_{ nullptr }
+        , end_{ nullptr }
+    {
+    }
+
+    constexpr dynamic_vector(size_type size) noexcept
         : begin_{ allocator().allocate(size) }
         , end_{ begin_ + size }
     {
@@ -80,7 +86,7 @@ public:
         {
             if (size() != other.size())
             {
-                if (begin())
+                if (begin_)
                 {
                     allocator().deallocate(begin_, size());
                     begin_ = nullptr;
@@ -123,6 +129,17 @@ public:
     ~dynamic_vector() noexcept
     {
         if (begin_) allocator().deallocate(begin_, size());
+    }
+
+    constexpr auto resize(size_type n) noexcept -> void
+    {
+        if (begin_ != nullptr) [[unlikely]]
+        {
+            allocator().deallocate(begin_, size());
+            begin_ = nullptr;
+        }
+        begin_ = allocator().allocate(n);
+        end_   = begin_ + n;
     }
 
     [[nodiscard]]
@@ -219,7 +236,14 @@ auto operator<<(std::ostream& os, dynamic_vector<T, Allocator> const& v) noexcep
     const auto size = std::ranges::size(v);
     for (std::size_t n{ 0 }; auto const& e : v)
     {
-        os << e << (++n != size ? ", " : " ");
+        if constexpr (std::ranges::range<T>)
+        {
+            os << e << (++n != size ? ",\n" : "\n");
+        }
+        else
+        {
+            os << e << (++n != size ? ", " : " ");
+        }
     }
     os << '}';
 

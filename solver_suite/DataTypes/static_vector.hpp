@@ -13,10 +13,6 @@
 namespace data_types::static_containers
 {
 
-struct initialize_internals_placeholder
-{
-};
-
 template <typename T, std::size_t N>
 struct static_vector
 {
@@ -27,26 +23,25 @@ struct static_vector
     using const_iterator              = typename container_t::const_iterator;
     using iterator                    = typename container_t::iterator;
 
-    explicit static_vector(initialize_internals_placeholder, auto&&... args) noexcept
+    static constexpr auto filled(auto&&... args) noexcept -> static_vector
         requires std::constructible_from<T, decltype(args)...>
-        : data_{ utility::compile_time_utility::array_factory<value_type, size>(
-              value_type(std::forward<decltype(args)>(args)...)
-          ) }
     {
+        return static_vector{
+            utility::compile_time_utility::array_factory<value_type, size>(
+                value_type(std::forward<decltype(args)>(args)...)
+            )
+        };
     }
 
-    static_vector(std::initializer_list<value_type> init) noexcept
+    static constexpr auto filled(auto&& fn, auto&&... args) noexcept -> static_vector
+        requires std::is_invocable_r_v<T, decltype(fn), decltype(args)...>
     {
-        assert(init.size() == N);
-        std::ranges::copy(init, std::begin(data_));
+        return static_vector{
+            utility::compile_time_utility::array_factory<value_type, size>(
+                std::forward<decltype(fn)>(fn), std::forward<decltype(args)>(args)...
+            )
+        };
     }
-
-    constexpr static_vector() noexcept                                        = default;
-    constexpr static_vector(static_vector const&) noexcept                    = default;
-    constexpr static_vector(static_vector&&) noexcept                         = default;
-    constexpr auto operator=(static_vector const&) noexcept -> static_vector& = default;
-    constexpr auto operator=(static_vector&&) noexcept -> static_vector&      = default;
-    ~static_vector() noexcept                                                 = default;
 
     [[nodiscard]]
     constexpr auto data(this auto&& self) noexcept -> decltype(auto)
@@ -152,7 +147,14 @@ auto operator<<(std::ostream& os, static_vector<T, N> const& v) noexcept -> std:
     os << "{ ";
     for (std::size_t n{ 0 }; auto const& e : v)
     {
-        os << e << (++n != N ? ", " : " ");
+        if constexpr (std::ranges::range<T>)
+        {
+            os << e << (++n != N ? ",\n" : "\n");
+        }
+        else
+        {
+            os << e << (++n != N ? ", " : " ");
+        }
     }
     os << '}';
 

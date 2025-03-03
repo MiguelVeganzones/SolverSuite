@@ -29,19 +29,17 @@ auto operator<<(std::ostream& os, ndc const& v) noexcept -> std::ostream&
 
 int main()
 {
-    std::cout << "Hello allocator world\n";
+    std::cout << "Hello global allocator world\n";
 
     using F          = float;
     constexpr auto N = 10uz;
     using vector_f   = data_types::static_containers::static_vector<F, N>;
     using vector_ndc = data_types::static_containers::static_vector<ndc, N>;
-    vector_f v1(
-        data_types::static_containers::initialize_internals_placeholder{}, 3.f
-    ); // Initializes all to 3s? ...
+    vector_f v1;
     vector_f v2;
     vector_f v3;
     // vector_ndc v4; // Invalid, no default ctor
-    vector_ndc v6(data_types::static_containers::initialize_internals_placeholder{}, 4.f);
+    vector_ndc v6 = vector_ndc::filled(4.f);
 
     std::cout << v1 << '\n';
     std::cout << v6 << '\n';
@@ -60,14 +58,14 @@ int main()
         // This are the semantics unfortunately. Size is not know through the
         // expression template. This could be added, but copy and move
         // operations defeat the purpose of the stack allocator.
-        vector_f v5;
-        v5 = v1 + v3;
+        vector_f v5 = v1 + v3;
 
         std::cout << v1 << '\n';
         std::cout << v3 << '\n';
         std::cout << v5 << '\n';
     }
-    std::cout << "Goodbye allocator world\n";
+
+    std::cout << "Goodbye global allocator world\n";
 
     return 0;
 }

@@ -65,6 +65,7 @@ constexpr auto operator_impl(auto&& a, auto&& b, auto&& binary_op) noexcept
     if constexpr (dt_concepts::StaticArray<a_t>)
     {
         ret_t ret(a);
+        /*
         for (auto i = 0uz; i != std::ranges::size(a); ++i)
         {
             ret[i] = std::invoke(
@@ -73,6 +74,8 @@ constexpr auto operator_impl(auto&& a, auto&& b, auto&& binary_op) noexcept
                 operation_utils::subscript(b, i)
             );
         }
+        */
+        ret += b;
         return ret;
     }
     else if constexpr (dt_concepts::StaticArray<b_t>)

@@ -20,11 +20,18 @@ int main()
     static_assert(std::ranges::range<buffer_t>);
     Allocator allocator(N * n);
     DVec::set_allocator(&allocator);
-    const auto m = data_types::static_containers::initialize_internals_placeholder{};
-    buffer_t   v1(m, n);
-    buffer_t   v2(m, 50);
-    buffer_t   v3(m, n);
-    buffer_t   v4(m, n);
+    buffer_t v1;
+    buffer_t v2;
+    buffer_t v3;
+    buffer_t v4;
+
+    for (auto i = 0uz; i != N; ++i)
+    {
+        v1[i].resize(n);
+        v2[i].resize(50);
+        v3[i].resize(n);
+        v4[i].resize(n);
+    }
 
     std::cout << v1 << '\n';
 
@@ -43,11 +50,8 @@ int main()
     }
 
     {
-        // This are the semantics unfortunately. Size is not know through the
-        // expression template. This could be added, but copy and move
-        // operations defeat the purpose of the stack allocator.
-        buffer_t v5 = v1;
-        v5 += v3;
+        buffer_t v5 = v1 + v3;
+        // v5 += v3;
 
         std::cout << v5 << '\n';
     }

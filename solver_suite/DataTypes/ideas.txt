@@ -5,3 +5,5 @@ capacity vector would allow:
       require growing or shrinking their size.
 But would:
     - Just be a worse implementation of std::vector
+Ill just try to make the code compatible with std::vector, which can also
+accept allocators
