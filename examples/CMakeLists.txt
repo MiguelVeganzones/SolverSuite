@@ -49,13 +49,13 @@ set(DEBUG_CXX_FLAGS
 	-ffinite-math-only
 	-fmax-errors=5
 	-fno-exceptions
-	-fno-rtti
 	-fno-omit-frame-pointer
 	-fvisibility=hidden
 	-ggdb3
 	-mavx
 	-march=native
 	-pedantic
+	# -fno-rtti
 )
 
 set(RELEASE_CXX_FLAGS
@@ -147,6 +147,8 @@ include_directories(
     ../solver_suite/Allocators/
     ../solver_suite/DataTypes/
     ../solver_suite/Utility/
+    ../solver_suite/Plotting/
+    ../solver_suite/Solvers/
 )
 
 # Optional features
@@ -161,16 +163,34 @@ if(ENABLE_SANITIZERS)
     list(APPEND LINK_FLAGS ${SANITIZER_FLAGS})
 endif()
 
-# Source files
-file(GLOB_RECURSE SRC_FILES ./*.t.cpp)
+set(EXAMPLES_DIR "./")
+
 # Generate executable for all .t.cpp
-set(TEST_DIR "./")
-file(GLOB TEST_FILES "${TEST_DIR}/*.t.cpp")
-foreach(TEST_FILE ${TEST_FILES})
-    get_filename_component(TARGET_NAME ${TEST_FILE} NAME_WE)
-    add_executable(${TARGET_NAME} ${TEST_FILE})
+file(GLOB EXAMPLE_FILES "${EXAMPLES_DIR}/*.t.cpp")
+foreach(EXAMPLE_FILE ${EXAMPLE_FILES})
+    get_filename_component(TARGET_NAME ${EXAMPLE_FILE} NAME_WE)
+    add_executable(${TARGET_NAME} ${EXAMPLE_FILE})
     target_compile_options(${TARGET_NAME} PRIVATE ${CXX_FLAGS})
     target_link_options(${TARGET_NAME} PRIVATE ${LINK_FLAGS})
+endforeach()
+
+find_package(ROOT REQUIRED)
+include_directories(${ROOT_INCLUDE_DIRS})
+set(PLT_CXX_FLAGS "${CXX_FLAGS};-Wno-cpp")
+file(GLOB_RECURSE PLOTTING_FILES ../solver_suite/Plotting/*.cpp)
+add_library(plotting STATIC ${PLOTTING_FILES})
+add_compile_definitions(USE_ROOT_PLOTTING)
+target_compile_options(plotting PRIVATE -pthread -m64 -Wno-cpp)
+target_link_libraries(plotting PRIVATE ${ROOT_LIBRARIES})
+
+# Generate executable for all .t.plt.cpp
+file(GLOB PLT_EXAMPLE_FILES "${EXAMPLES_DIR}/*.t.plt.cpp")
+foreach(PLT_EXAMPLE_FILE ${PLT_EXAMPLE_FILES})
+    get_filename_component(TARGET_NAME ${PLT_EXAMPLE_FILE} NAME_WE)
+    add_executable(${TARGET_NAME} ${PLT_EXAMPLE_FILE})
+    target_compile_options(${TARGET_NAME} PRIVATE ${PLT_CXX_FLAGS})
+    target_link_options(${TARGET_NAME} PRIVATE ${LINK_FLAGS})
+    target_link_libraries(${TARGET_NAME} PRIVATE plotting)
 endforeach()
 
 # Build messages

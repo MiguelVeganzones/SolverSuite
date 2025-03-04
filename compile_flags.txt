@@ -2,4 +2,6 @@
 -I./solver_suite/Allocators
 -I./solver_suite/Memory
 -I./solver_suite/DataTypes/
+-I./solver_suite/Plotting/
+-I./solver_suite/Solvers/
 -std=c++2b

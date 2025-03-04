@@ -1,6 +1,7 @@
 #pragma once
 
 #include "casts.hpp"
+#include "data_type_utils.hpp"
 #include "dynamic_container_operations.hpp"
 #include <concepts>
 #include <iostream>
@@ -219,26 +220,43 @@ public:
 
     constexpr auto operator+=(this auto& self, auto&& other) noexcept -> dynamic_array&
     {
-        self = self + std::forward<decltype(other)>(other);
+        self.in_place_operator_impl_(std::forward<decltype(other)>(other), std::plus{});
         return self;
     }
 
     constexpr auto operator-=(this auto& self, auto&& other) noexcept -> dynamic_array&
     {
-        self = self - std::forward<decltype(other)>(other);
+        self.in_place_operator_impl_(std::forward<decltype(other)>(other), std::minus{});
         return self;
     }
 
     constexpr auto operator*=(this auto& self, auto&& other) noexcept -> dynamic_array&
     {
-        self = self * std::forward<decltype(other)>(other);
+        self.in_place_operator_impl_(
+            std::forward<decltype(other)>(other), std::multiplies{}
+        );
         return self;
     }
 
     constexpr auto operator/=(this auto& self, auto&& other) noexcept -> dynamic_array&
     {
-        self = self / std::forward<decltype(other)>(other);
+        self.in_place_operator_impl_(
+            std::forward<decltype(other)>(other), std::divides{}
+        );
         return self;
+    }
+
+    constexpr auto in_place_operator_impl_(
+        this auto& a,
+        auto&&     b,
+        auto&&     binary_op
+    ) noexcept -> void
+    {
+        assert(a.size() == dt_utils::common_size(a, std::forward<decltype(b)>(b)));
+        for (auto idx = 0uz; idx != a.size(); ++idx)
+        {
+            a[idx] = binary_op(a[idx], operation_utils::subscript(b, idx));
+        }
     }
 
     [[nodiscard]]

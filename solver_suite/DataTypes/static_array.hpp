@@ -126,7 +126,7 @@ struct static_array
             static_assert(dt_traits::is_same_size_v<a_t, b_t>);
         }
 
-        for (auto idx = 0uz; idx != std::ranges::size(a); ++idx)
+        for (auto idx = 0uz; idx != size; ++idx)
         {
             a[idx] = binary_op(a[idx], operation_utils::subscript(b, idx));
         }

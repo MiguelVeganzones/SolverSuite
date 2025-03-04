@@ -1,15 +1,13 @@
 #pragma once
 
-#include <algorithm>
 #include <concepts>
-#include <type_traits>
+#include <utility>
 
 namespace solvers::explicit_stepers
 {
 
 template <
     typename Stepper,
-    std::size_t         Stage_Count,
     std::size_t         Order,
     std::floating_point Value_Type,
     typename State_Type,
@@ -26,8 +24,7 @@ public:
     using time_type    = Time_Type;
 
 private:
-    inline static constexpr auto s_stage_count = Stage_Count;
-    inline static constexpr auto s_order       = Order;
+    inline static constexpr auto s_order = Order;
 
 public:
     [[nodiscard]]
@@ -48,7 +45,8 @@ public:
         return s_order;
     }
 
-    void do_step(auto&& system, state_type& x_in_out, time_type t, time_type dt)
+    auto do_step(auto&& system, state_type& x_in_out, time_type t, time_type dt) noexcept
+        -> void
     {
         this->stepper().do_step_impl(
             std::forward<decltype(system)>(system), x_in_out, t, dt
