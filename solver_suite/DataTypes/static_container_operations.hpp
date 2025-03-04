@@ -65,17 +65,9 @@ constexpr auto operator_impl(auto&& a, auto&& b, auto&& binary_op) noexcept
     if constexpr (dt_concepts::StaticArray<a_t>)
     {
         ret_t ret(a);
-        /*
-        for (auto i = 0uz; i != std::ranges::size(a); ++i)
-        {
-            ret[i] = std::invoke(
-                binary_op,
-                operation_utils::subscript(a, i),
-                operation_utils::subscript(b, i)
-            );
-        }
-        */
-        ret += b;
+        ret.in_place_operator_impl_(
+            std::forward<decltype(b)>(b), std::forward<decltype(binary_op)>(binary_op)
+        );
         return ret;
     }
     else if constexpr (dt_concepts::StaticArray<b_t>)

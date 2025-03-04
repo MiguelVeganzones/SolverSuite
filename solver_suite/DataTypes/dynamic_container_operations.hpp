@@ -1,5 +1,6 @@
 #pragma once
 
+#include "data_type_utils.hpp"
 #include "operation_utils.hpp"
 #include <functional>
 #include <tuple>
@@ -10,7 +11,10 @@ namespace data_types::dynamic_containers
 {
 
 template <typename T>
-concept expression_template = requires(T) { T::expression_template_disambiguator; };
+concept expression_template = requires(T t) {
+    T::expression_template_disambiguator;
+    t.size();
+};
 
 template <typename Callable, typename... Operands>
 class expr
@@ -18,17 +22,26 @@ class expr
 public:
     inline static constexpr auto expression_template_disambiguator = 1;
     using callable_t                                               = Callable;
+    using size_type                                                = std::size_t;
 
 public:
-    constexpr expr(callable_t f, Operands const&... args)
+    constexpr expr(size_type size, callable_t f, Operands const&... args)
         : m_args(args...)
         , m_f{ f }
+        , m_size{ size }
     {
+    }
+
+    [[nodiscard]]
+    constexpr auto size() const noexcept -> size_type
+    {
+        return m_size;
     }
 
     [[nodiscard]]
     inline constexpr auto operator[](std::integral auto idx) const
     {
+        assert(idx < m_size);
         const auto apply_at_index =
             [this, idx] [[nodiscard]]
             (Operands const&... args) constexpr noexcept {
@@ -40,56 +53,65 @@ public:
 private:
     std::tuple<Operands const&...> m_args;
     callable_t                     m_f;
+    size_type                      m_size;
 };
 
 auto operator+(auto&& lhs, auto&& rhs) noexcept -> decltype(auto)
 {
-    return expr{ [](auto&& l, auto&& r) {
-                    return std::invoke(
-                        std::plus{},
-                        std::forward<decltype(l)>(l),
-                        std::forward<decltype(r)>(r)
-                    );
-                },
+    const auto size = dt_utils::common_size(lhs, rhs);
+    return expr{ size,
+                 [](auto&& l, auto&& r) noexcept {
+                     return std::invoke(
+                         std::plus{},
+                         std::forward<decltype(l)>(l),
+                         std::forward<decltype(r)>(r)
+                     );
+                 },
                  std::forward<decltype(lhs)>(lhs),
                  std::forward<decltype(rhs)>(rhs) };
 }
 
 auto operator-(auto&& lhs, auto&& rhs) noexcept -> decltype(auto)
 {
-    return expr{ [](auto&& l, auto&& r) {
-                    return std::invoke(
-                        std::minus{},
-                        std::forward<decltype(l)>(l),
-                        std::forward<decltype(r)>(r)
-                    );
-                },
+    const auto size = dt_utils::common_size(lhs, rhs);
+    return expr{ size,
+                 [](auto&& l, auto&& r) noexcept {
+                     return std::invoke(
+                         std::minus{},
+                         std::forward<decltype(l)>(l),
+                         std::forward<decltype(r)>(r)
+                     );
+                 },
                  std::forward<decltype(lhs)>(lhs),
                  std::forward<decltype(rhs)>(rhs) };
 }
 
 auto operator*(auto&& lhs, auto&& rhs) noexcept -> decltype(auto)
 {
-    return expr{ [](auto&& l, auto&& r) {
-                    return std::invoke(
-                        std::multiplies{},
-                        std::forward<decltype(l)>(l),
-                        std::forward<decltype(r)>(r)
-                    );
-                },
+    const auto size = dt_utils::common_size(lhs, rhs);
+    return expr{ size,
+                 [](auto&& l, auto&& r) noexcept {
+                     return std::invoke(
+                         std::multiplies{},
+                         std::forward<decltype(l)>(l),
+                         std::forward<decltype(r)>(r)
+                     );
+                 },
                  std::forward<decltype(lhs)>(lhs),
                  std::forward<decltype(rhs)>(rhs) };
 }
 
 auto operator/(auto&& lhs, auto&& rhs) noexcept -> decltype(auto)
 {
-    return expr{ [](auto&& l, auto&& r) {
-                    return std::invoke(
-                        std::divides{},
-                        std::forward<decltype(l)>(l),
-                        std::forward<decltype(r)>(r)
-                    );
-                },
+    const auto size = dt_utils::common_size(lhs, rhs);
+    return expr{ size,
+                 [](auto&& l, auto&& r) noexcept {
+                     return std::invoke(
+                         std::divides{},
+                         std::forward<decltype(l)>(l),
+                         std::forward<decltype(r)>(r)
+                     );
+                 },
                  std::forward<decltype(lhs)>(lhs),
                  std::forward<decltype(rhs)>(rhs) };
 }

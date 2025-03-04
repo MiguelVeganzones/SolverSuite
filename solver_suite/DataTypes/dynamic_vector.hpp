@@ -58,10 +58,23 @@ public:
     {
     }
 
+    constexpr dynamic_array(expression_template auto const& src) noexcept
+        : begin_{ allocator().allocate(src.size()) }
+        , end_{ begin_ + src.size() }
+    {
+        const auto n = src.size();
+        for (size_type i = 0; i != n; ++i)
+        {
+            begin_[i] = src[i];
+        }
+        return *this;
+    }
+
     constexpr auto operator=(expression_template auto const& src) noexcept
         -> dynamic_array&
     {
         const auto n = size();
+        assert(src.size() == n);
         for (size_type i = 0; i != n; ++i)
         {
             begin_[i] = src[i];

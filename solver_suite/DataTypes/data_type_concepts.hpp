@@ -19,4 +19,7 @@ concept DynamicArray = requires(T t) {
     std::end(t);
 };
 
+template <typename T>
+concept SizedInstance = requires(T t) { t.size(); };
+
 } // namespace data_types::dt_concepts
