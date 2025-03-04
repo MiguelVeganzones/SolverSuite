@@ -20,19 +20,15 @@ constexpr auto common_size(
 }
 
 [[nodiscard]]
-constexpr auto common_size(
-    dt_concepts::SizedInstance auto const& a,
-    auto const&                            b
-) noexcept -> decltype(std::declval<decltype(a)>().size())
+constexpr auto common_size(dt_concepts::SizedInstance auto const& a, auto const&) noexcept
+    -> decltype(std::declval<decltype(a)>().size())
 {
     return a.size();
 }
 
 [[nodiscard]]
-constexpr auto common_size(
-    auto const&                            a,
-    dt_concepts::SizedInstance auto const& b
-) noexcept -> decltype(std::declval<decltype(b)>().size())
+constexpr auto common_size(auto const&, dt_concepts::SizedInstance auto const& b) noexcept
+    -> decltype(std::declval<decltype(b)>().size())
 {
     return b.size();
 }

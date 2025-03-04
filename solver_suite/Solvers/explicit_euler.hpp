@@ -1,5 +1,6 @@
 #pragma once
 
+#include "data_type_concepts.hpp"
 #include "explicit_stepper_base.hpp"
 #include <concepts>
 
@@ -51,8 +52,21 @@ public:
         time_type   dt
     ) noexcept -> void
     {
+        if constexpr (data_types::dt_concepts::SizedInstance<deriv_type> &&
+                      data_types::dt_concepts::SizedInstance<state_type>)
+        {
+            assert(x_in_out.size() == m_dxdt.size());
+        }
         std::forward<decltype(system)>(system)(x_in_out, m_dxdt, t);
         x_in_out += m_dxdt * dt;
+    }
+
+    auto resize_internals(size_type n) noexcept -> void
+    {
+        if constexpr (data_types::dt_concepts::Resizeable<deriv_type>)
+        {
+            m_dxdt.resize(n);
+        }
     }
 
 private:

@@ -1,20 +1,17 @@
 #pragma once
 
+#include "data_type_concepts.hpp"
 #include "data_type_utils.hpp"
 #include "operation_utils.hpp"
+#include <concepts>
 #include <functional>
 #include <tuple>
+#include <type_traits>
 
 // Needs to be in the same namespace for name resolution of constructors,
 // unfortunately
 namespace data_types::dynamic_containers
 {
-
-template <typename T>
-concept expression_template = requires(T t) {
-    T::expression_template_disambiguator;
-    t.size();
-};
 
 template <typename Callable, typename... Operands>
 class expr
@@ -56,6 +53,7 @@ private:
     size_type                      m_size;
 };
 
+[[nodiscard]]
 auto operator+(auto&& lhs, auto&& rhs) noexcept -> decltype(auto)
 {
     const auto size = dt_utils::common_size(lhs, rhs);
@@ -71,6 +69,7 @@ auto operator+(auto&& lhs, auto&& rhs) noexcept -> decltype(auto)
                  std::forward<decltype(rhs)>(rhs) };
 }
 
+[[nodiscard]]
 auto operator-(auto&& lhs, auto&& rhs) noexcept -> decltype(auto)
 {
     const auto size = dt_utils::common_size(lhs, rhs);
@@ -86,6 +85,7 @@ auto operator-(auto&& lhs, auto&& rhs) noexcept -> decltype(auto)
                  std::forward<decltype(rhs)>(rhs) };
 }
 
+[[nodiscard]]
 auto operator*(auto&& lhs, auto&& rhs) noexcept -> decltype(auto)
 {
     const auto size = dt_utils::common_size(lhs, rhs);
@@ -101,6 +101,7 @@ auto operator*(auto&& lhs, auto&& rhs) noexcept -> decltype(auto)
                  std::forward<decltype(rhs)>(rhs) };
 }
 
+[[nodiscard]]
 auto operator/(auto&& lhs, auto&& rhs) noexcept -> decltype(auto)
 {
     const auto size = dt_utils::common_size(lhs, rhs);

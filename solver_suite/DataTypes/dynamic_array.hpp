@@ -1,9 +1,11 @@
 #pragma once
 
 #include "casts.hpp"
+#include "data_type_concepts.hpp"
 #include "data_type_utils.hpp"
 #include "dynamic_container_operations.hpp"
 #include <concepts>
+#include <initializer_list>
 #include <iostream>
 #include <memory>
 #include <span>
@@ -59,7 +61,14 @@ public:
     {
     }
 
-    constexpr dynamic_array(expression_template auto const& src) noexcept
+    constexpr dynamic_array(std::initializer_list<T> init) noexcept
+        : begin_{ allocator().allocate(init.size()) }
+        , end_{ begin_ + init.size() }
+    {
+        std::ranges::copy(init, begin_);
+    }
+
+    constexpr dynamic_array(dt_concepts::ExpressionTemplate auto const& src) noexcept
         : begin_{ allocator().allocate(src.size()) }
         , end_{ begin_ + src.size() }
     {
@@ -70,7 +79,7 @@ public:
         }
     }
 
-    constexpr auto operator=(expression_template auto const& src) noexcept
+    constexpr auto operator=(dt_concepts::ExpressionTemplate auto const& src) noexcept
         -> dynamic_array&
     {
         const auto n = src.size();
@@ -156,7 +165,7 @@ public:
         }
     }
 
-    constexpr auto resize(size_type n) noexcept -> void
+    constexpr auto resize(size_type n) & noexcept -> void
     {
         if (size() == n)
         {
@@ -255,7 +264,11 @@ public:
         assert(a.size() == dt_utils::common_size(a, std::forward<decltype(b)>(b)));
         for (auto idx = 0uz; idx != a.size(); ++idx)
         {
-            a[idx] = binary_op(a[idx], operation_utils::subscript(b, idx));
+            a[idx] = std::invoke(
+                std::forward<decltype(binary_op)>(binary_op),
+                a[idx],
+                operation_utils::subscript(b, idx)
+            );
         }
     }
 
