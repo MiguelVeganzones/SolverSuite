@@ -3,7 +3,7 @@
 
 #include "debug_allocators.hpp"
 #include "stack_allocator.hpp"
-#include "static_vector.hpp"
+#include "static_array.hpp"
 #include <iostream>
 
 // Non defualt constructible class
@@ -34,8 +34,8 @@ int main()
 
     using F          = float;
     constexpr auto N = 10uz;
-    using vector_f   = data_types::static_containers::static_vector<F, N>;
-    using vector_ndc = data_types::static_containers::static_vector<ndc, N>;
+    using vector_f   = data_types::static_containers::static_array<F, N>;
+    using vector_ndc = data_types::static_containers::static_array<ndc, N>;
     vector_f v1;
     vector_f v2;
     vector_f v3;

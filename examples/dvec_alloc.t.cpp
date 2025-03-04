@@ -1,7 +1,7 @@
 #define DEBUG_PRINT
 
 #include "debug_allocators.hpp"
-#include "dynamic_vector.hpp"
+#include "dynamic_array.hpp"
 #include "stack_allocator.hpp"
 #include <iostream>
 
@@ -11,7 +11,7 @@ int main()
 
     using F         = float;
     using Allocator = allocators::dynamic_stack_allocator<F>;
-    using vector    = data_types::dynamic_containers::dynamic_vector<F, Allocator>;
+    using vector    = data_types::dynamic_containers::dynamic_array<F, Allocator>;
     Allocator allocator(100);
     vector::set_allocator(&allocator);
     static_assert(std::ranges::range<vector>);

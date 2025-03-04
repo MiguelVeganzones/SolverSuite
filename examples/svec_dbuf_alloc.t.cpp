@@ -1,9 +1,9 @@
 #define DEBUG_PRINT
 
 #include "debug_allocators.hpp"
-#include "dynamic_vector.hpp"
+#include "dynamic_array.hpp"
 #include "stack_allocator.hpp"
-#include "static_vector.hpp"
+#include "static_array.hpp"
 #include <iostream>
 
 int main()
@@ -13,9 +13,9 @@ int main()
     using F          = float;
     constexpr auto N = 6uz;
     const auto     n = 15;
-    using SVec       = data_types::static_containers::static_vector<F, N>;
+    using SVec       = data_types::static_containers::static_array<F, N>;
     using Allocator  = allocators::dynamic_stack_allocator<SVec>;
-    using vector     = data_types::dynamic_containers::dynamic_vector<SVec, Allocator>;
+    using vector     = data_types::dynamic_containers::dynamic_array<SVec, Allocator>;
     static_assert(std::ranges::range<vector>);
     Allocator allocator(N * n);
     vector::set_allocator(&allocator);

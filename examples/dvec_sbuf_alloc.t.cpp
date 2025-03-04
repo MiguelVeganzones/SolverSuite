@@ -1,10 +1,10 @@
 #define DEBUG_PRINT
 
 #include "debug_allocators.hpp"
-#include "dynamic_vector.hpp"
+#include "dynamic_array.hpp"
 #include "random.hpp"
 #include "stack_allocator.hpp"
-#include "static_vector.hpp"
+#include "static_array.hpp"
 #include <iostream>
 
 int main()
@@ -15,8 +15,8 @@ int main()
     constexpr auto N = 15uz;
     const auto     n = 6uz;
     using Allocator  = allocators::dynamic_stack_allocator<F>;
-    using DVec       = data_types::dynamic_containers::dynamic_vector<F, Allocator>;
-    using buffer_t   = data_types::static_containers::static_vector<DVec, N>;
+    using DVec       = data_types::dynamic_containers::dynamic_array<F, Allocator>;
+    using buffer_t   = data_types::static_containers::static_array<DVec, N>;
     static_assert(std::ranges::range<buffer_t>);
     Allocator allocator(N * n);
     DVec::set_allocator(&allocator);

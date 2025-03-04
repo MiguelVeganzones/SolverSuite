@@ -14,7 +14,7 @@ namespace data_types::static_containers
 {
 
 template <typename T, std::size_t N>
-struct static_vector
+struct static_array
 {
     using value_type                  = T;
     using size_type                   = decltype(N);
@@ -23,23 +23,23 @@ struct static_vector
     using const_iterator              = typename container_t::const_iterator;
     using iterator                    = typename container_t::iterator;
 
-    static constexpr auto filled(auto&&... args) noexcept -> static_vector
+    static constexpr auto filled(auto&&... args) noexcept -> static_array
         requires std::constructible_from<T, decltype(args)...>
     {
-        return static_vector{
+        return static_array{
             utility::compile_time_utility::array_factory<value_type, size>(
                 value_type(std::forward<decltype(args)>(args)...)
             )
         };
     }
 
-    static constexpr auto filled(auto&& fn, auto&&... args) noexcept -> static_vector
+    static constexpr auto filled(auto&& fn, auto&&... args) noexcept -> static_array
         requires std::is_invocable_v<decltype(fn), decltype(args)...> &&
                  std::constructible_from<
                      T,
                      std::invoke_result_t<decltype(fn), decltype(args)...>>
     {
-        return static_vector{
+        return static_array{
             utility::compile_time_utility::array_factory<value_type, size>(
                 std::forward<decltype(fn)>(fn), std::forward<decltype(args)>(args)...
             )
@@ -84,19 +84,19 @@ struct static_vector
         return std::end(std::forward<decltype(self)>(self).data_);
     }
 
-    constexpr auto operator+=(this auto& self, auto&& other) noexcept -> static_vector&
+    constexpr auto operator+=(this auto& self, auto&& other) noexcept -> static_array&
     {
         self.in_place_operator_impl_(std::forward<decltype(other)>(other), std::plus{});
         return self;
     }
 
-    constexpr auto operator-=(this auto& self, auto&& other) noexcept -> static_vector&
+    constexpr auto operator-=(this auto& self, auto&& other) noexcept -> static_array&
     {
         self.in_place_operator_impl_(std::forward<decltype(other)>(other), std::minus{});
         return self;
     }
 
-    constexpr auto operator*=(this auto& self, auto&& other) noexcept -> static_vector&
+    constexpr auto operator*=(this auto& self, auto&& other) noexcept -> static_array&
     {
         self.in_place_operator_impl_(
             std::forward<decltype(other)>(other), std::multiplies{}
@@ -104,7 +104,7 @@ struct static_vector
         return self;
     }
 
-    constexpr auto operator/=(this auto& self, auto&& other) noexcept -> static_vector&
+    constexpr auto operator/=(this auto& self, auto&& other) noexcept -> static_array&
     {
         self.in_place_operator_impl_(
             std::forward<decltype(other)>(other), std::divides{}
@@ -133,7 +133,7 @@ struct static_vector
     }
 
     [[nodiscard]]
-    constexpr auto operator<=>(static_vector const&) const = default;
+    constexpr auto operator<=>(static_array const&) const = default;
 
     inline constexpr auto assert_in_bounds([[maybe_unused]] std::integral auto idx
     ) const noexcept -> void
@@ -145,7 +145,7 @@ struct static_vector
 };
 
 template <typename T, std::size_t N>
-auto operator<<(std::ostream& os, static_vector<T, N> const& v) noexcept -> std::ostream&
+auto operator<<(std::ostream& os, static_array<T, N> const& v) noexcept -> std::ostream&
 {
     os << "{ ";
     for (std::size_t n{ 0 }; auto const& e : v)
@@ -172,15 +172,15 @@ namespace std
 {
 
 template <typename T, std::size_t N>
-struct common_type<data_types::static_containers::static_vector<T, N>, T>
+struct common_type<data_types::static_containers::static_array<T, N>, T>
 {
-    using type = data_types::static_containers::static_vector<T, N>;
+    using type = data_types::static_containers::static_array<T, N>;
 };
 
 template <typename T, std::size_t N>
-struct common_type<T, data_types::static_containers::static_vector<T, N>>
+struct common_type<T, data_types::static_containers::static_array<T, N>>
 {
-    using type = data_types::static_containers::static_vector<T, N>;
+    using type = data_types::static_containers::static_array<T, N>;
 };
 
 } // namespace std
