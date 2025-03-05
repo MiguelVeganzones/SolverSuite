@@ -1,6 +1,7 @@
 #include "TApplication.h"
 #include "dynamic_array.hpp"
-#include "explicit_euler.hpp"
+#include "generic_runge_kutta.hpp"
+#include "runge_kutta_params.hpp"
 #include "series_plot_2D.hpp"
 #include "stack_allocator.hpp"
 #include <cmath>
@@ -9,7 +10,7 @@
 
 int main()
 {
-    std::cout << "Hello Explicit Euler world\n";
+    std::cout << "Hello Explicit RK world\n";
 
     // x'' = -x
     // x_1 = x
@@ -41,8 +42,8 @@ int main()
         y[0][i]      = std::sin(t);
     }
 
-    using ee_t =
-        solvers::explicit_stepers::explicit_euler<F, vector_t, vector_t, time_type>;
+    using rk_t = solvers::explicit_stepers::
+        generic_runge_kutta_base<4, 4, F, vector_t, vector_t, time_type>;
 
     auto system = [](auto const& z,
                      auto&       dzdt,
@@ -59,8 +60,13 @@ int main()
     auto     t     = t0;
     vector_t y_hat = y0;
     y[1][0]        = y_hat[0];
-    ee_t stepper;
-    stepper.resize_internals(2);
+    rk_t stepper(
+        2,
+        solvers::explicit_stepers::runge_kutta_parameters<F, 4>{
+            { 0.5f, 0.f, 0.5f, 0.f, 0.f, 1.f },
+            { 1.f / 6.f, 1.f / 3.f, 1.f / 3.f, 1.f / 6.f },
+            { 0.5f, 0.5f, 1.f } }
+    );
     for (auto i = 1; i != n; ++i)
     {
         stepper.do_step(system, y_hat, t, dt);
@@ -73,5 +79,5 @@ int main()
     plt.render();
     app.Run();
 
-    std::cout << "Goodbye Explicit Euler world\n";
+    std::cout << "Goodbye Explicit RK world\n";
 }

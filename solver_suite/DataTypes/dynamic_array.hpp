@@ -83,6 +83,11 @@ public:
         -> dynamic_array&
     {
         const auto n = src.size();
+        if (begin_ == nullptr)
+        {
+            begin_ = allocator().allocate(n);
+            end_   = begin_ + n;
+        }
         assert(n == size());
         for (size_type i = 0; i != n; ++i)
         {
@@ -126,15 +131,15 @@ public:
     constexpr dynamic_array(dynamic_array&&) noexcept                    = delete;
     constexpr auto operator=(dynamic_array&&) noexcept -> dynamic_array& = delete;
 #else
-    constexpr dynamic_vector(dynamic_vector&& other) noexcept
-        : begin_(other.begin_)
-        , end_(begin_ + other.size())
+    constexpr dynamic_array(dynamic_array&& other) noexcept
+        : begin_{ other.begin_ }
+        , end_{ other.end_ }
     {
         other.begin_ = nullptr;
         other.end_   = nullptr;
     }
 
-    constexpr auto operator=(dynamic_vector&& other) noexcept -> dynamic_vector&
+    constexpr auto operator=(dynamic_array&& other) noexcept -> dynamic_array&
     {
         if (this != &other)
         {

@@ -38,7 +38,7 @@ int main()
     }
 
     using ee_t =
-        solvers::explicit_stepers::explicit_euler<1, 1, F, vector_t, vector_t, time_type>;
+        solvers::explicit_stepers::explicit_euler<F, vector_t, vector_t, time_type>;
 
     auto system = [](auto const& z,
                      auto&       dzdt,

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "concepts.hpp"
 #include <iterator>
 #include <utility>
 
@@ -36,5 +37,10 @@ concept ExpressionTemplate = requires(T t) {
     t.size();
 };
 
+template <typename T>
+concept ScalarType = utility::concepts::arithmetic<T>;
+
+template <typename T>
+concept ValidExprOperand = DynamicArray<T> || ExpressionTemplate<T> || ScalarType<T>;
 
 } // namespace data_types::dt_concepts

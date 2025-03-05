@@ -2,27 +2,20 @@
 
 #include "data_type_concepts.hpp"
 #include "explicit_stepper_base.hpp"
+#include <cassert>
 #include <concepts>
 
 namespace solvers::explicit_stepers
 {
 
 template <
-    std::size_t         Stage_Count,
-    std::size_t         Order,
     std::floating_point Value_Type,
     typename State_Type,
     typename Deriv_Type,
     typename Time_Type>
 class explicit_euler : public explicit_stepers_base<
-                           explicit_euler<
-                               Stage_Count,
-                               Order,
-                               Value_Type,
-                               State_Type,
-                               Deriv_Type,
-                               Time_Type>,
-                           Order,
+                           explicit_euler<Value_Type, State_Type, Deriv_Type, Time_Type>,
+                           1uz,
                            Value_Type,
                            State_Type,
                            Deriv_Type,
@@ -36,7 +29,7 @@ public:
     using time_type  = Time_Type;
 
 private:
-    inline static constexpr auto s_stage_count = Stage_Count;
+    inline static constexpr auto s_stage_count = 1uz;
 
 public:
     [[nodiscard]]
@@ -62,11 +55,10 @@ public:
     }
 
     auto resize_internals(size_type n) noexcept -> void
+        requires data_types::dt_concepts::Resizeable<deriv_type>
     {
-        if constexpr (data_types::dt_concepts::Resizeable<deriv_type>)
-        {
-            m_dxdt.resize(n);
-        }
+        assert(n > 0);
+        m_dxdt.resize(n);
     }
 
 private:
