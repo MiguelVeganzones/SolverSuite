@@ -7,3 +7,9 @@ But would:
     - Just be a worse implementation of std::vector
 Ill just try to make the code compatible with std::vector, which can also
 accept allocators
+
+Maybe add specializations for adding and multiplying by 0? Just return the other
+operand or return a 0. Would make sense for some rk methods where some b_i is 0.
+Also, this if statements only happens when building an expr object, this
+construction would e bypassed, and the logic would still hold I believe. We need
+benchmarks for this, and tests.

@@ -66,79 +66,84 @@ private:
 template <std::size_t N, std::size_t I = 0>
     requires(N > I)
 [[nodiscard]]
-auto expr_reduce(auto const& range_a, auto const& range_b) -> auto
+auto expr_reduce(auto const& range_a, auto const& range_b) noexcept -> decltype(auto)
 {
     assert(std::ranges::size(range_a) == N);
     assert(std::ranges::size(range_b) == N);
 
-    const auto size = dt_utils::common_size(range_a[I], range_b[I]);
-    auto       e    = expr{ size,
-                   [](auto const& l, auto const& r) noexcept {
-                       return std::invoke(std::multiplies{}, l, r);
-                   },
-                   range_a[I],
-                   range_b[I] };
+    const auto e = range_a[I] * range_b[I];
     if constexpr (I + 1 == N)
     {
         return e;
     }
     else
     {
-        return expr{ size,
-                     [](auto const& l, auto const& r) noexcept {
-                         return std::invoke(std::plus{}, l, r);
-                     },
-                     e,
-                     expr_reduce<N, I + 1>(range_a, range_b) };
+        return e + expr_reduce<N, I + 1>(range_a, range_b);
     }
 }
 
 [[nodiscard]]
-auto operator+(auto const& lhs, auto const& rhs) noexcept -> decltype(auto)
+auto operator+(auto&& lhs, auto&& rhs) noexcept -> decltype(auto)
 {
     const auto size = dt_utils::common_size(lhs, rhs);
     return expr{ size,
-                 [](auto const& l, auto const& r) noexcept {
-                     return std::invoke(std::plus{}, l, r);
+                 [](auto&& l, auto&& r) noexcept {
+                     return std::invoke(
+                         std::plus{},
+                         std::forward<decltype(l)>(l),
+                         std::forward<decltype(r)>(r)
+                     );
                  },
-                 lhs,
-                 rhs };
+                 std::forward<decltype(lhs)>(lhs),
+                 std::forward<decltype(rhs)>(rhs) };
 }
 
 [[nodiscard]]
-auto operator-(auto const& lhs, auto const& rhs) noexcept -> decltype(auto)
+auto operator-(auto&& lhs, auto&& rhs) noexcept -> decltype(auto)
 {
     const auto size = dt_utils::common_size(lhs, rhs);
     return expr{ size,
-                 [](auto const& l, auto const& r) noexcept {
-                     return std::invoke(std::minus{}, l, r);
+                 [](auto&& l, auto&& r) noexcept {
+                     return std::invoke(
+                         std::minus{},
+                         std::forward<decltype(l)>(l),
+                         std::forward<decltype(r)>(r)
+                     );
                  },
-                 lhs,
-                 rhs };
+                 std::forward<decltype(lhs)>(lhs),
+                 std::forward<decltype(rhs)>(rhs) };
 }
 
 [[nodiscard]]
-auto operator*(auto const& lhs, auto const& rhs) noexcept -> decltype(auto)
+auto operator*(auto&& lhs, auto&& rhs) noexcept -> decltype(auto)
 {
     const auto size = dt_utils::common_size(lhs, rhs);
     return expr{ size,
-                 [](auto const& l, auto const& r) noexcept {
-                     return std::invoke(std::multiplies{}, l, r);
+                 [](auto&& l, auto&& r) noexcept {
+                     return std::invoke(
+                         std::multiplies{},
+                         std::forward<decltype(l)>(l),
+                         std::forward<decltype(r)>(r)
+                     );
                  },
-                 lhs,
-                 rhs };
+                 std::forward<decltype(lhs)>(lhs),
+                 std::forward<decltype(rhs)>(rhs) };
 }
 
 [[nodiscard]]
-auto operator/(auto const& lhs, auto const& rhs) noexcept -> decltype(auto)
+auto operator/(auto&& lhs, auto&& rhs) noexcept -> decltype(auto)
 {
     const auto size = dt_utils::common_size(lhs, rhs);
     return expr{ size,
-                 [](auto const& l, auto const& r) noexcept {
-                     return std::invoke(std::divides{}, l, r);
+                 [](auto&& l, auto&& r) noexcept {
+                     return std::invoke(
+                         std::divides{},
+                         std::forward<decltype(l)>(l),
+                         std::forward<decltype(r)>(r)
+                     );
                  },
-                 lhs,
-                 rhs };
+                 std::forward<decltype(lhs)>(lhs),
+                 std::forward<decltype(rhs)>(rhs) };
 }
 
 } // namespace data_types::dynamic_containers
