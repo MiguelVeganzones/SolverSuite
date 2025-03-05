@@ -26,9 +26,9 @@ template <typename T>
 concept SizedInstance = requires(T t) { t.size(); };
 
 template <typename T>
-concept Resizeable = requires(T t) {
+concept Resizeable = requires(T t, typename T::size_type n) {
     t.size();
-    t.resize(std::declval<typename T::size_type>());
+    t.resize(n);
 };
 
 template <typename T>
