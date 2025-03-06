@@ -73,7 +73,7 @@ constexpr auto operator_impl(auto&& a, auto&& b, auto&& binary_op) noexcept
     else if constexpr (dt_concepts::StaticArray<b_t>)
     {
         ret_t ret(b);
-        for (auto i = 0uz; i != std::ranges::size(a); ++i)
+        for (auto i = 0uz; i != std::ranges::size(b); ++i)
         {
             ret[i] = std::invoke(
                 binary_op,

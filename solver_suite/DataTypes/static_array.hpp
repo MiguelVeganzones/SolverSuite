@@ -16,18 +16,18 @@ namespace data_types::static_containers
 template <typename T, std::size_t N>
 struct static_array
 {
-    using value_type                  = T;
-    using size_type                   = decltype(N);
-    inline static constexpr auto size = N;
-    using container_t                 = std::array<value_type, size>;
-    using const_iterator              = typename container_t::const_iterator;
-    using iterator                    = typename container_t::iterator;
+    using value_type                    = T;
+    using size_type                     = decltype(N);
+    inline static constexpr auto s_size = N;
+    using container_t                   = std::array<value_type, s_size>;
+    using const_iterator                = typename container_t::const_iterator;
+    using iterator                      = typename container_t::iterator;
 
     static constexpr auto filled(auto&&... args) noexcept -> static_array
         requires std::constructible_from<T, decltype(args)...>
     {
         return static_array{
-            utility::compile_time_utility::array_factory<value_type, size>(
+            utility::compile_time_utility::array_factory<value_type, s_size>(
                 value_type(std::forward<decltype(args)>(args)...)
             )
         };
@@ -40,10 +40,16 @@ struct static_array
                      std::invoke_result_t<decltype(fn), decltype(args)...>>
     {
         return static_array{
-            utility::compile_time_utility::array_factory<value_type, size>(
+            utility::compile_time_utility::array_factory<value_type, s_size>(
                 std::forward<decltype(fn)>(fn), std::forward<decltype(args)>(args)...
             )
         };
+    }
+
+    [[nodiscard]]
+    static constexpr auto size() noexcept -> size_type
+    {
+        return s_size;
     }
 
     [[nodiscard]]
@@ -126,7 +132,7 @@ struct static_array
             static_assert(dt_traits::is_same_size_v<a_t, b_t>);
         }
 
-        for (auto idx = 0uz; idx != size; ++idx)
+        for (auto idx = 0uz; idx != s_size; ++idx)
         {
             a[idx] = binary_op(a[idx], operation_utils::subscript(b, idx));
         }
@@ -138,7 +144,7 @@ struct static_array
     inline constexpr auto assert_in_bounds([[maybe_unused]] std::integral auto idx
     ) const noexcept -> void
     {
-        assert(idx < utility::casts::safe_cast<decltype(idx)>(size));
+        assert(idx < utility::casts::safe_cast<decltype(idx)>(s_size));
     }
 
     container_t data_;
