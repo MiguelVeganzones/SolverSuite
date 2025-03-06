@@ -15,7 +15,7 @@ namespace data_types::dynamic_containers
 
 template <typename Callable, typename... Operands>
     requires(dt_concepts::ValidExprOperand<Operands> && ...)
-class expr
+class expr : dt_concepts::expression_templates_base
 {
 private:
     template <typename T>
@@ -23,8 +23,6 @@ private:
         std::conditional_t<dt_concepts::DynamicArray<T>, T const&, std::decay_t<T>>;
 
 public:
-    inline static constexpr auto expression_template_disambiguator = 1;
-
     using callable_t      = Callable;
     using size_type       = std::size_t;
     using storage_tuple_t = std::tuple<storage_t<Operands>...>;

@@ -46,7 +46,7 @@ public:
         using other = dynamic_stack_allocator<U>;
     };
 
-    dynamic_stack_allocator(size_type n) noexcept
+    constexpr dynamic_stack_allocator(size_type n) noexcept
         : buffer_{ new T[n] }
         , size_{ n }
     {

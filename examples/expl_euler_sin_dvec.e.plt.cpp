@@ -1,7 +1,7 @@
 #include "TApplication.h"
+#include "allocator_wrapper.hpp"
 #include "dynamic_array.hpp"
-#include "generic_runge_kutta.hpp"
-#include "runge_kutta_params.hpp"
+#include "explicit_euler.hpp"
 #include "series_plot_2D.hpp"
 #include "stack_allocator.hpp"
 #include <cmath>
@@ -10,25 +10,26 @@
 
 int main()
 {
-    std::cout << "Hello Explicit RK world\n";
+    std::cout << "Hello Explicit Euler world\n";
 
     // x'' = -x
     // x_1 = x
     // x_2 = x'
     // (x_1; x_2)' = (0, 1; -1, 0)(x_1; x_2)
 
-    using F         = float;
-    using time_type = F;
-    using Allocator = allocators::dynamic_stack_allocator<F>;
-    using vector_t  = data_types::dynamic_containers::dynamic_array<F, Allocator>;
+    using F               = float;
+    using time_type       = F;
+    using Allocator       = allocators::dynamic_stack_allocator<F>;
+    using StaticAllocator = allocators::static_allocator<Allocator>;
+    using vector = data_types::dynamic_containers::dynamic_array<F, StaticAllocator>;
     Allocator allocator(100);
-    vector_t::set_allocator(&allocator);
+    StaticAllocator::set_allocator(allocator);
 
-    const auto     dt    = F{ 0.1f };
-    time_type      t0    = 0;
-    time_type      t_end = 10 * std::numbers::pi_v<F>;
-    const vector_t y0    = { std::sin(t0), std::cos(t0) };
-    const auto     n     = (int)std::ceil(t_end / dt);
+    const auto   dt    = F{ 0.01f };
+    time_type    t0    = 0;
+    time_type    t_end = 10 * std::numbers::pi_v<F>;
+    const vector y0    = { std::sin(t0), std::cos(t0) };
+    const auto   n     = (int)std::ceil(t_end / dt);
 
     std::vector<float>              x(n);
     std::vector<std::vector<float>> y(2);
@@ -42,8 +43,7 @@ int main()
         y[0][i]      = std::sin(t);
     }
 
-    using rk_t = solvers::explicit_stepers::
-        generic_runge_kutta_base<4, 4, F, vector_t, vector_t, time_type>;
+    using ee_t = solvers::explicit_stepers::explicit_euler<F, vector, vector, time_type>;
 
     auto system = [](auto const& z,
                      auto&       dzdt,
@@ -57,14 +57,11 @@ int main()
         dzdt[1] = -z[0];
     };
 
-    auto     t     = t0;
-    vector_t y_hat = y0;
-    y[1][0]        = y_hat[0];
-    rk_t stepper(
-        2,
-        solvers::explicit_stepers::butcher_tableau<F, 4>{
-            { 2.f / 3.f }, { 1.f / 4.f, 3.f / 4.f }, { 2.f / 3.f } }
-    );
+    auto   t     = t0;
+    vector y_hat = y0;
+    y[1][0]      = y_hat[0];
+    ee_t stepper;
+    stepper.resize_internals(2);
     for (auto i = 1; i != n; ++i)
     {
         stepper.do_step(system, y_hat, t, dt);
@@ -77,5 +74,5 @@ int main()
     plt.render();
     app.Run();
 
-    std::cout << "Goodbye Explicit RK world\n";
+    std::cout << "Goodbye Explicit Euler world\n";
 }

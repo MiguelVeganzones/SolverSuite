@@ -19,7 +19,7 @@ namespace data_types::dynamic_containers
 {
 
 template <typename T, typename Allocator = std::allocator<T>>
-class dynamic_array
+class dynamic_array : private Allocator
 {
 public:
     using value_type  = T;
@@ -31,45 +31,68 @@ public:
     using const_iterator = const_pointer;
     using iterator       = pointer;
 
-private:
-    inline static allocator_t* s_allocator_ptr = nullptr;
-
 public:
-    // TODO: Can you change allocator?
-    static auto set_allocator(allocator_t* p) noexcept -> void
+    [[nodiscard]]
+    constexpr auto allocator() const -> allocator_t const&
     {
-        s_allocator_ptr = p;
+        return *static_cast<allocator_t const*>(this);
     }
 
     [[nodiscard]]
-    inline static auto allocator() noexcept -> allocator_t&
+    constexpr auto allocator() -> allocator_t&
     {
-        assert(s_allocator_ptr != nullptr);
-        return *s_allocator_ptr;
+        return *static_cast<allocator_t*>(this);
     }
 
 public:
     constexpr dynamic_array() noexcept
-        : begin_{ nullptr }
+        : dynamic_array(allocator_t())
+    {
+    }
+
+    explicit constexpr dynamic_array(allocator_t const& alloc) noexcept
+        : allocator_t{ alloc }
+        , begin_{ nullptr }
         , end_{ nullptr }
     {
     }
 
-    constexpr dynamic_array(size_type size) noexcept
-        : begin_{ allocator().allocate(size) }
+    explicit constexpr dynamic_array(
+        size_type          size,
+        allocator_t const& alloc = allocator_t()
+    ) noexcept
+        : allocator_t(alloc)
+        , begin_{ allocator().allocate(size) }
         , end_{ begin_ + size }
     {
     }
 
-    constexpr dynamic_array(std::initializer_list<T> init) noexcept
-        : begin_{ allocator().allocate(init.size()) }
+    constexpr dynamic_array(
+        size_type          size,
+        value_type const&  value,
+        allocator_t const& alloc = allocator_t()
+    ) noexcept
+        : allocator_t(alloc)
+        , begin_{ allocator().allocate(size) }
+        , end_{ begin_ + size }
+    {
+        std::fill(begin_, end_, value);
+    }
+
+    constexpr dynamic_array(
+        std::initializer_list<T> init,
+        const allocator_t        alloc = allocator_t()
+    ) noexcept
+        : allocator_t(alloc)
+        , begin_{ allocator().allocate(init.size()) }
         , end_{ begin_ + init.size() }
     {
         std::ranges::copy(init, begin_);
     }
 
     constexpr dynamic_array(dt_concepts::ExpressionTemplate auto const& src) noexcept
-        : begin_{ allocator().allocate(src.size()) }
+        : allocator_t()
+        , begin_{ allocator().allocate(src.size()) }
         , end_{ begin_ + src.size() }
     {
         const auto n = src.size();
@@ -101,7 +124,8 @@ public:
     constexpr auto operator=(dynamic_vector const&) noexcept -> dynamic_vector& = delete;
 #else
     constexpr dynamic_array(dynamic_array const& other) noexcept
-        : begin_{ allocator().allocate(other.size()) }
+        : allocator_t(other.allocator())
+        , begin_{ allocator().allocate(other.size()) }
         , end_{ begin_ + other.size() }
     {
         std::ranges::copy(other, this->begin_);
@@ -118,8 +142,9 @@ public:
                     allocator().deallocate(begin_, size());
                     begin_ = nullptr;
                 }
-                begin_ = allocator().allocate(other.size());
-                end_   = begin_ + other.size();
+                allocator() = other.allocator();
+                begin_      = allocator().allocate(other.size());
+                end_        = begin_ + other.size();
             }
             std::ranges::copy(other, begin_);
         }

@@ -1,5 +1,6 @@
 #define DEBUG_PRINT
 
+#include "allocator_wrapper.hpp"
 #include "debug_allocators.hpp"
 #include "dynamic_array.hpp"
 #include "stack_allocator.hpp"
@@ -10,19 +11,19 @@ int main()
 {
     std::cout << "Hello allocator world\n";
 
-    using F          = float;
-    constexpr auto N = 6uz;
-    const auto     n = 15;
-    using SVec       = data_types::static_containers::static_array<F, N>;
-    using Allocator  = allocators::dynamic_stack_allocator<SVec>;
-    using vector     = data_types::dynamic_containers::dynamic_array<SVec, Allocator>;
+    using F              = float;
+    constexpr auto N     = 6uz;
+    const auto     n     = 15;
+    using SVec           = data_types::static_containers::static_array<F, N>;
+    using Allocator      = allocators::dynamic_stack_allocator<SVec>;
+    using AllocatorPimpl = allocators::allocator_pimpl<Allocator>;
+    using vector = data_types::dynamic_containers::dynamic_array<SVec, AllocatorPimpl>;
     static_assert(std::ranges::range<vector>);
     Allocator allocator(N * n);
-    vector::set_allocator(&allocator);
-    vector v1(n);
-    vector v2(50);
-    vector v3(n);
-    vector v4(n);
+    vector    v1(n, allocator);
+    vector    v2(50, allocator);
+    vector    v3(n, allocator);
+    vector    v4(n, allocator);
 
     std::cout << v1 << '\n';
 
@@ -44,7 +45,7 @@ int main()
         // This are the semantics unfortunately. Size is not know through the
         // expression template. This could be added, but copy and move
         // operations defeat the purpose of the stack allocator.
-        vector v5(n);
+        vector v5(n, allocator);
         v5 = v1 + v3;
 
         std::cout << v5 << '\n';

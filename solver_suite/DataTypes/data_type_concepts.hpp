@@ -31,11 +31,12 @@ concept Resizeable = requires(T t, typename T::size_type n) {
     t.resize(n);
 };
 
-template <typename T>
-concept ExpressionTemplate = requires(T t) {
-    T::expression_template_disambiguator;
-    t.size();
+struct expression_templates_base
+{
 };
+
+template <typename T>
+concept ExpressionTemplate = std::is_base_of_v<expression_templates_base, T>;
 
 template <typename T>
 concept ScalarType = utility::concepts::arithmetic<T>;

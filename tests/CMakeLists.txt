@@ -162,35 +162,16 @@ if(ENABLE_SANITIZERS)
     list(APPEND LINK_FLAGS ${SANITIZER_FLAGS})
 endif()
 
-set(EXAMPLES_DIR "./")
+set(TEST_DIR "./")
 
-# Generate executable for all .e.cpp
-file(GLOB EXAMPLE_FILES "${EXAMPLES_DIR}/*.e.cpp")
-foreach(EXAMPLE_FILE ${EXAMPLE_FILES})
-    get_filename_component(TARGET_NAME ${EXAMPLE_FILE} NAME_WE)
-    add_executable(${TARGET_NAME} ${EXAMPLE_FILE})
-    target_compile_options(${TARGET_NAME} PRIVATE ${CXX_FLAGS})
-    target_link_options(${TARGET_NAME} PRIVATE ${LINK_FLAGS})
-endforeach()
-
-find_package(ROOT REQUIRED)
-include_directories(${ROOT_INCLUDE_DIRS})
-set(PLT_CXX_FLAGS "${CXX_FLAGS};-Wno-cpp")
-file(GLOB_RECURSE PLOTTING_FILES ../solver_suite/Plotting/*.cpp)
-add_library(plotting STATIC ${PLOTTING_FILES})
-add_compile_definitions(USE_ROOT_PLOTTING)
-target_compile_options(plotting PRIVATE -pthread -m64 -Wno-cpp)
-target_link_libraries(plotting PRIVATE ${ROOT_LIBRARIES})
-
-# Generate executable for all .e.plt.cpp
-file(GLOB PLT_EXAMPLE_FILES "${EXAMPLES_DIR}/*.e.plt.cpp")
-foreach(PLT_EXAMPLE_FILE ${PLT_EXAMPLE_FILES})
-    get_filename_component(TARGET_NAME ${PLT_EXAMPLE_FILE} NAME_WE)
-    add_executable(${TARGET_NAME} ${PLT_EXAMPLE_FILE})
-    target_compile_options(${TARGET_NAME} PRIVATE ${PLT_CXX_FLAGS})
-    target_link_options(${TARGET_NAME} PRIVATE ${LINK_FLAGS})
-    target_link_libraries(${TARGET_NAME} PRIVATE plotting)
-endforeach()
+# Tests executable
+file(GLOB TEST_FILES "${TEST_DIR}/*.t.cpp")
+add_executable(tests ${TEST_FILES})
+find_package(GTest REQUIRED)
+include_directories(${GTEST_INCLUDE_DIRS})
+target_link_libraries(tests PRIVATE GTest::GTest GTest::Main)
+target_compile_options(tests PRIVATE ${CXX_FLAGS})
+target_link_options(tests PRIVATE ${LINK_FLAGS})
 
 # Build messages
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
