@@ -10,7 +10,7 @@ set(CMAKE_VERBOSE_MAKEFILE ON)
 
 # Build type configurations
 if(NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE Debug)
+    set(CMAKE_BUILD_TYPE Release)
 endif()
 
 # Compiler flags
@@ -20,6 +20,7 @@ set(DEBUG_CXX_FLAGS
 	-Wall
 	-Wconversion
 	-Wdangling-else
+	-Wdangling-pointer
 	-Wdouble-promotion
 	-Wduplicated-branches
 	-Wduplicated-cond
@@ -66,6 +67,7 @@ set(RELEASE_CXX_FLAGS
 	-ggdb3
 	-O3
 	-Wall
+	-Wdangling-pointer
 	-Wextra
 	-Wreturn-local-addr
 	-Wshadow
@@ -95,6 +97,7 @@ set(FULL_RELEASE_CXX_FLAGS
 	-Wall
 	-Wextra
 	-Wshadow
+	-Wdangling-pointer
 	-Wconversion
 	-Wmisleading-indentation
 	-Werror
@@ -152,9 +155,9 @@ include_directories(
 
 # Optional features
 if (NOT DEFINED ENABLE_SANITIZERS AND CMAKE_BUILD_TYPE STREQUAL "Debug")
-    set(default_enable_sanitizers ON)
+    set(ENABLE_SANITIZERS ON)
 else()
-    set(default_enable_sanitizers OFF)
+    set(ENABLE_SANITIZERS OFF)
 endif()
 
 if(ENABLE_SANITIZERS)
@@ -164,7 +167,6 @@ endif()
 
 set(BENCHMARKS_DIR "./")
 
-add_subdirectory(./google_benchmark)
 find_package(benchmark REQUIRED)
 # Generate executable for all .b.cpp
 file(GLOB BENCHMARK_FILES "${BENCHMARKS_DIR}/*.b.cpp")

@@ -14,8 +14,8 @@ private:
     static constexpr auto alignment = alignof(std::max_align_t);
 
 public:
-    using size_type                          = std::size_t;
-    using memory_address_t                   = std::byte*;
+    using size_type                   = std::size_t;
+    using memory_address_t            = std::byte*;
     static constexpr size_type s_size = N;
 
 public:
@@ -73,7 +73,7 @@ public:
         }
         else
         {
-            ::operator delete(p);
+            delete[] p;
         }
     }
 

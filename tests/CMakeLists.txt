@@ -20,6 +20,7 @@ set(DEBUG_CXX_FLAGS
 	-Wall
 	-Wconversion
 	-Wdangling-else
+	-Wdangling-pointer
 	-Wdouble-promotion
 	-Wduplicated-branches
 	-Wduplicated-cond
@@ -68,6 +69,7 @@ set(RELEASE_CXX_FLAGS
 	-Wall
 	-Wextra
 	-Wreturn-local-addr
+	-Wdangling-pointer
 	-Wshadow
 	-ffinite-math-only
 	-Wconversion
@@ -91,6 +93,7 @@ set(FULL_RELEASE_CXX_FLAGS
 	-fdiagnostics-show-template-tree
 	-fdiagnostics-path-format=inline-events
 	-fdiagnostics-show-caret
+	-Wdangling-pointer
 	-O3
 	-Wall
 	-Wextra

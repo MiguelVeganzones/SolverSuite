@@ -49,7 +49,7 @@ struct static_array
     [[nodiscard]]
     constexpr auto data(this auto&& self) noexcept -> decltype(auto)
     {
-        return std::forward<decltype(self)>(self).data_;
+        return std::forward<decltype(self)>(self).data_.data();
     }
 
     [[nodiscard]]

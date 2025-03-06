@@ -213,10 +213,7 @@ public:
     [[nodiscard]]
     constexpr auto data(this auto&& self) noexcept -> decltype(auto)
     {
-        return std::span(
-            std::forward<decltype(self)>(self).begin_,
-            std::forward<decltype(self)>(self).end_
-        );
+        return std::forward<decltype(self)>(self).begin_;
     }
 
     [[nodiscard]]

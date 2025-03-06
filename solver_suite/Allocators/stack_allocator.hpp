@@ -130,7 +130,7 @@ public:
 #ifdef DEBUG_PRINT
             std::cout << "Backup allocator dealocates\n";
 #endif
-            ::operator delete(p);
+            delete[] p;
         }
     }
 

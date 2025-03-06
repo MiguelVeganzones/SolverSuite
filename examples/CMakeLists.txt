@@ -20,6 +20,7 @@ set(DEBUG_CXX_FLAGS
 	-Wall
 	-Wconversion
 	-Wdangling-else
+	-Wdangling-pointer
 	-Wdouble-promotion
 	-Wduplicated-branches
 	-Wduplicated-cond
@@ -81,6 +82,7 @@ set(RELEASE_CXX_FLAGS
 	-fbounds-check
 	-fconcepts-diagnostics-depth=3
 	-fno-exceptions
+	-Wdangling-pointer
 	-fno-rtti
 	-fopt-info-vec-all
 	-fvisibility=hidden
@@ -97,6 +99,7 @@ set(FULL_RELEASE_CXX_FLAGS
 	-Wshadow
 	-Wconversion
 	-Wmisleading-indentation
+	-Wdangling-pointer
 	-Werror
 	-fstrength-reduce
 	-pedantic
