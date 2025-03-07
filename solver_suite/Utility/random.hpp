@@ -52,7 +52,6 @@ public:
         return uniform_dist(random_engine_);
     }
 
-private:
     inline auto seed_engine(unsigned int seed) noexcept -> void
     {
         random_engine_.seed(seed);
@@ -115,7 +114,6 @@ public:
         return default_normal_(random_engine_);
     }
 
-private:
     inline auto seed_engine(unsigned int seed) noexcept -> void
     {
         random_engine_.seed(seed);

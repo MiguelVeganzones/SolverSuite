@@ -71,6 +71,7 @@ public:
         time_type   dt
     ) noexcept -> void
     {
+#ifndef NDEBUG
         if constexpr (data_types::dt_concepts::SizedInstance<deriv_type>)
         {
             assert(x_in_out.size() == m_x_tmp.size());
@@ -83,6 +84,7 @@ public:
                 assert(x_in_out.size() == dx.size());
             }
         }
+#endif
 
         system(x_in_out, m_dxdt[0], t);
         for (auto j = 1; j < s_stage_count; ++j)

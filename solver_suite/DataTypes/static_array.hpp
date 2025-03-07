@@ -2,6 +2,7 @@
 
 #include "casts.hpp"
 #include "compile_time_utility.hpp"
+#include "data_type_concepts.hpp"
 #include "static_container_operations.hpp"
 #include <array>
 #include <concepts>
@@ -64,6 +65,31 @@ struct static_array
     {
         std::forward<decltype(self)>(self).assert_in_bounds(idx);
         return std::forward<decltype(self)>(self).data_[idx];
+    }
+
+    template <typename Slice_Type = std::span<value_type>>
+    [[nodiscard]]
+    constexpr auto slice(this auto&& self, std::size_t start, std::size_t end) noexcept
+        -> decltype(auto)
+    {
+        assert(start <= end);
+        assert(end <= s_size);
+        if constexpr (std::is_same_v<Slice_Type, std::span<value_type>>)
+        {
+            return Slice_Type{ self.begin_ + start, self.begin_ + end };
+        }
+        else if constexpr (dt_concepts::StaticArray<Slice_Type>)
+        {
+            Slice_Type ret{};
+            std::copy(self.begin() + start, self.begin() + end, std::begin(ret));
+            return ret;
+        }
+        else
+        {
+            Slice_Type ret(s_size);
+            std::copy(self.begin() + start, self.begin() + end, std::begin(ret));
+            return ret;
+        }
     }
 
     [[nodiscard]]

@@ -91,6 +91,7 @@ public:
     }
 
     constexpr dynamic_array(dt_concepts::ExpressionTemplate auto const& src) noexcept
+        requires dt_concepts::SizedInstance<decltype(src)>
         : allocator_t()
         , begin_{ allocator().allocate(src.size()) }
         , end_{ begin_ + src.size() }
@@ -105,13 +106,7 @@ public:
     constexpr auto operator=(dt_concepts::ExpressionTemplate auto const& src) noexcept
         -> dynamic_array&
     {
-        const auto n = src.size();
-        if (begin_ == nullptr)
-        {
-            begin_ = allocator().allocate(n);
-            end_   = begin_ + n;
-        }
-        assert(n == size());
+        const auto n = size();
         for (size_type i = 0; i != n; ++i)
         {
             begin_[i] = src[i];

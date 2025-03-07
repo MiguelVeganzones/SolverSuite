@@ -1,18 +1,15 @@
-#include "TApplication.h"
 #include "allocator_wrapper.hpp"
+#include "bm_utils.hpp"
 #include "dynamic_array.hpp"
 #include "generic_runge_kutta.hpp"
 #include "operation_utils.hpp"
 #include "random.hpp"
 #include "runge_kutta_params.hpp"
-#include "series_plot_2D.hpp"
 #include "stack_allocator.hpp"
 #include "static_array.hpp"
 #include <cmath>
 #include <iostream>
 #include <numbers>
-
-#define SEED1 104845342
 
 template <typename F, std::size_t N>
 struct nbody_system
@@ -70,8 +67,8 @@ int main()
 
     using F          = float;
     using time_type  = F;
-    constexpr auto N = 2; // Dimension
-    const auto     n = 8; // Particles
+    constexpr auto N = 3;    // Dimension
+    const auto     n = 1000; // Particles
     using SVec       = data_types::static_containers::static_array<
               F,
               N * 2>; // * 2 Because to solve a second order differential equation with runge
@@ -79,44 +76,23 @@ int main()
     using Allocator       = allocators::dynamic_stack_allocator<SVec>;
     using StaticAllocator = allocators::static_allocator<Allocator>;
     using vector = data_types::dynamic_containers::dynamic_array<SVec, StaticAllocator>;
-    Allocator allocator(N * n * 7);
+    Allocator allocator(N * n * 2 * 10);
     StaticAllocator::set_allocator(allocator);
 
-    const auto dt    = F{ 0.0001f };
+    const auto dt    = F{ 0.5f };
     time_type  t0    = 0;
-    time_type  t_end = 100 * std::numbers::pi_v<F>;
+    time_type  t_end = 250;
     vector     y0(n, SVec{});
     const auto k = (int)std::ceil(t_end / dt);
-
-    utility::random::srandom::seed<F>((unsigned int)SEED1);
-
-    std::vector<float>              x(k);
-    std::vector<std::vector<float>> y(n);
-    for (auto& v : y)
-    {
-        v.reserve(k);
-    }
 
     // Fill initial conditions
     std::generate(std::begin(y0), std::end(y0), []() mutable {
         SVec ret;
         std::generate(std::begin(ret), std::begin(ret) + N, []() mutable {
-            return utility::random::srandom::randnormal<F>(F{ 0 }, F{ 10 });
+            return utility::random::srandom::randnormal(F{ 0 }, F{ 10 });
         });
         return ret;
     });
-
-    // Fill time array
-    for (auto i = 0; i != k; ++i)
-    {
-        const auto t_i = F(i) * dt;
-        x[i]           = t_i;
-    }
-    // Fill y[0]
-    for (auto i = 0; i != n; ++i)
-    {
-        y[i][0] = y0[i][0];
-    }
 
     using rk_t = solvers::explicit_stepers::
         generic_runge_kutta_base<4, 4, F, vector, vector, time_type>;
@@ -135,17 +111,8 @@ int main()
     {
         stepper.do_step(s, y_hat, t_i, dt);
         t_i += dt;
-        for (auto j = 0; j != n; ++j)
-        {
-            // std::cout << y_hat << '\n';
-            y[j][i] = y_hat[j][0]; // Plot the first dimension only
-        }
+        bm_utils::escape((void*)&y_hat);
     }
-
-    TApplication                       app = TApplication("Root app", 0, nullptr);
-    plotting::plots_2D::series_plot_2D plt(x, y, plotting::VisualizationMode::layout_2D);
-    plt.render();
-    app.Run();
 
     std::cout << "Goodbye Explicit RK world\n";
 }
