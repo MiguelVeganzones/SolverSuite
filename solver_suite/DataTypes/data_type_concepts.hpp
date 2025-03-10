@@ -42,6 +42,19 @@ template <typename T>
 concept ScalarType = utility::concepts::arithmetic<T>;
 
 template <typename T>
-concept ValidExprOperand = DynamicArray<T> || ExpressionTemplate<T> || ScalarType<T>;
+concept ValidExprOperand =
+    DynamicArray<T> || ExpressionTemplate<T> || ScalarType<T> || StaticArray<T>;
+
+template <typename T>
+concept EagerEvaluation = StaticArray<T> || ScalarType<T>;
+
+template <typename T>
+concept LazyEvaluation = ExpressionTemplate<T> || DynamicArray<T>;
+
+template <typename A, typename B>
+concept EagerlyEvaluatedExpr = EagerEvaluation<A> && EagerEvaluation<B>;
+
+template <typename A, typename B>
+concept LazilyEvaluatedExpr = LazyEvaluation<A> || LazyEvaluation<B>;
 
 } // namespace data_types::dt_concepts

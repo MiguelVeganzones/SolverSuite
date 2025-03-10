@@ -53,28 +53,6 @@ private:
     callable_t      m_f;
 };
 
-template <std::size_t N, std::size_t I = 0>
-    requires(N > I)
-[[nodiscard]]
-auto expr_reduce(
-    std::ranges::input_range auto const& range_a,
-    std::ranges::input_range auto const& range_b
-) noexcept -> decltype(auto)
-{
-    assert(std::ranges::size(range_a) == N);
-    assert(std::ranges::size(range_b) == N);
-
-    const auto e = range_a[I] * range_b[I];
-    if constexpr (I + 1 == N)
-    {
-        return e;
-    }
-    else
-    {
-        return e + expr_reduce<N, I + 1>(range_a, range_b);
-    }
-}
-
 [[nodiscard]]
 auto operator+(auto&& lhs, auto&& rhs) noexcept -> decltype(auto)
 {

@@ -1,0 +1,1 @@
+Im not sure how to deal with resizing. Current solution is horrible

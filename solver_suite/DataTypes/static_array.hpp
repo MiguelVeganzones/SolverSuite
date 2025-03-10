@@ -3,11 +3,10 @@
 #include "casts.hpp"
 #include "compile_time_utility.hpp"
 #include "data_type_concepts.hpp"
-#include "static_container_operations.hpp"
+#include "eager_container_operations.hpp"
 #include <array>
 #include <concepts>
 #include <functional>
-#include <initializer_list>
 #include <iostream>
 #include <type_traits>
 
@@ -56,7 +55,7 @@ struct static_array
     [[nodiscard]]
     constexpr auto data(this auto&& self) noexcept -> decltype(auto)
     {
-        return std::forward<decltype(self)>(self).data_.data();
+        return std::begin(std::forward<decltype(self)>(self).data_);
     }
 
     [[nodiscard]]
@@ -93,13 +92,13 @@ struct static_array
     }
 
     [[nodiscard]]
-    constexpr auto cbegin() const noexcept -> container_t::const_iterator
+    constexpr auto cbegin() const noexcept -> const_iterator
     {
         return std::cbegin(data_);
     }
 
     [[nodiscard]]
-    constexpr auto cend() const noexcept -> container_t::const_iterator
+    constexpr auto cend() const noexcept -> iterator
     {
         return std::cend(data_);
     }
@@ -173,7 +172,7 @@ struct static_array
         assert(idx < utility::casts::safe_cast<decltype(idx)>(s_size));
     }
 
-    container_t data_;
+    alignas(alignof(value_type)) container_t data_;
 };
 
 template <typename T, std::size_t N>

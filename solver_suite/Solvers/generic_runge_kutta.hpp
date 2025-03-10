@@ -2,11 +2,11 @@
 
 #include "data_type_concepts.hpp"
 #include "explicit_stepper_base.hpp"
+#include "operation_utils.hpp"
 #include "runge_kutta_params.hpp"
 #include <cassert>
 #include <concepts>
 #include <limits>
-#include <numeric>
 
 namespace solvers::explicit_stepers
 {
@@ -56,6 +56,15 @@ public:
         : m_rk_params{ rk_params }
     {
         resize_internals(n);
+        /*
+        std::cout << m_x_tmp.cbegin() << '\n';
+        std::cout << m_x_tmp.cend() << '\n';
+        for (auto& v : m_dxdt)
+        {
+            std::cout << v.cbegin() << '\n';
+            std::cout << v.cend() << '\n';
+        }
+        */
     }
 
     [[nodiscard]]
@@ -99,18 +108,53 @@ public:
             }
             system(m_x_tmp, m_dxdt[j], t_j);
         }
+        /*
         const auto& b = m_rk_params.b();
         x_in_out += dt * expr_reduce<Stage_Count>(m_dxdt, b);
+        */
+        x_in_out += dt * result_expr();
+        // x_in_out += dt * (m_dxdt[0] * b[0] + m_dxdt[1] * b[1] + m_dxdt[2] * b[2] +
+        // m_dxdt[3] * b[3]);
+    }
+
+    [[nodiscard]]
+    constexpr auto result_expr() const noexcept -> auto const&
+        requires data_types::dt_concepts::LazilyEvaluatedExpr<deriv_type, value_type>
+    {
+        static const auto expr = data_types::operation_utils::expr_reduce<Stage_Count>(
+            m_dxdt, m_rk_params.b()
+        );
+        return expr;
+    }
+
+    [[nodiscard]]
+    constexpr auto result_expr() const noexcept -> auto
+        requires data_types::dt_concepts::EagerlyEvaluatedExpr<deriv_type, value_type>
+    {
+        return data_types::operation_utils::expr_reduce<Stage_Count>(
+            m_dxdt, m_rk_params.b()
+        );
     }
 
     auto resize_internals(size_type n) noexcept -> void
         requires data_types::dt_concepts::Resizeable<deriv_type> ||
-                 data_types::dt_concepts::Resizeable<state_type>
+                 data_types::dt_concepts::Resizeable<typename deriv_type::value_type> ||
+                 data_types::dt_concepts::Resizeable<state_type> ||
+                 data_types::dt_concepts::Resizeable<typename state_type::value_type>
     {
         assert(n > 0);
         if constexpr (data_types::dt_concepts::Resizeable<state_type>)
         {
             m_x_tmp.resize(n);
+        }
+        else if constexpr (data_types::dt_concepts::Resizeable<
+                               typename state_type::value_type> &&
+                           std::ranges::range<state_type>)
+        {
+            for (auto& e : m_x_tmp)
+            {
+                e.resize(n);
+            }
         }
         if constexpr (data_types::dt_concepts::Resizeable<deriv_type>)
         {
@@ -119,12 +163,24 @@ public:
                 dx.resize(n);
             }
         }
+        else if constexpr (data_types::dt_concepts::Resizeable<
+                               typename state_type::value_type> &&
+                           std::ranges::range<deriv_type>)
+        {
+            for (auto& dx : m_dxdt)
+            {
+                for (auto& e : dx)
+                {
+                    e.resize(n);
+                }
+            }
+        }
     }
 
 private:
-    rk_params_type m_rk_params;
-    state_type     m_x_tmp;
-    deriv_type     m_dxdt[Stage_Count];
+    alignas(64) rk_params_type m_rk_params;
+    alignas(64) state_type m_x_tmp;
+    alignas(64) deriv_type m_dxdt[Stage_Count];
 };
 
 } // namespace solvers::explicit_stepers

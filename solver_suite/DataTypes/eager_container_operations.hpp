@@ -53,9 +53,8 @@ constexpr auto operator_impl(auto&& a, auto&& b, auto&& binary_op) noexcept
     requires dt_concepts::StaticArray<std::remove_reference_t<decltype(a)>> ||
              dt_concepts::StaticArray<std::remove_reference_t<decltype(b)>>
 {
-    using a_t   = std::remove_reference_t<decltype(a)>;
-    using b_t   = std::remove_reference_t<decltype(b)>;
-    using ret_t = std::common_type_t<a_t, b_t>;
+    using a_t = std::remove_cvref_t<decltype(a)>;
+    using b_t = std::remove_cvref_t<decltype(b)>;
 
     if constexpr (dt_concepts::StaticArray<a_t> && dt_concepts::StaticArray<b_t>)
     {
@@ -64,7 +63,7 @@ constexpr auto operator_impl(auto&& a, auto&& b, auto&& binary_op) noexcept
 
     if constexpr (dt_concepts::StaticArray<a_t>)
     {
-        ret_t ret(a);
+        a_t ret(a);
         ret.in_place_operator_impl_(
             std::forward<decltype(b)>(b), std::forward<decltype(binary_op)>(binary_op)
         );
@@ -72,7 +71,7 @@ constexpr auto operator_impl(auto&& a, auto&& b, auto&& binary_op) noexcept
     }
     else if constexpr (dt_concepts::StaticArray<b_t>)
     {
-        ret_t ret(b);
+        b_t ret(b);
         for (auto i = 0uz; i != std::ranges::size(b); ++i)
         {
             ret[i] = std::invoke(

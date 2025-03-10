@@ -46,8 +46,20 @@ public:
         using other = dynamic_stack_allocator<U>;
     };
 
+    // TODO: Initalization?
+    [[nodiscard]]
+    static auto aligned_new(size_type n, size_type alignment = 64) noexcept -> pointer
+    {
+        size_type total_size = n * sizeof(value_type);
+        if (total_size % alignment != 0)
+        {
+            total_size += alignment - (total_size % alignment);
+        }
+        return static_cast<pointer>(std::aligned_alloc(alignment, total_size));
+    }
+
     constexpr dynamic_stack_allocator(size_type n) noexcept
-        : buffer_{ new T[n] }
+        : buffer_{ aligned_new(n) }
         , size_{ n }
     {
         assert(n > 0);
@@ -69,7 +81,7 @@ public:
     {
         if (buffer_ != nullptr) [[likely]]
         {
-            delete[] buffer_;
+            std::free(buffer_);
             buffer_ = pointer();
         }
     }
