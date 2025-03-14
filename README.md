@@ -33,6 +33,8 @@ ROOT (CERN) ("Root" from now on) is used for plotting, and thus is a requirement
 
 #### Example - NBody Simualtion
 
+This plot shows the 1D projection of the solution of the n-body problem with 8 2D-particles over time. Solved using the classic 4th order Runge Kutta integrator.
+
 ![1D Projection of 8 2D-particles over time](./docs/assets/sample_particle_plot.png)
 
 ## Usage
