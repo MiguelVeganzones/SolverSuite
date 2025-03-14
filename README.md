@@ -33,7 +33,7 @@ ROOT (CERN) ("Root" from now on) is used for plotting, and thus is a requirement
 
 #### Example - NBody Simualtion
 
-![1D Projection of 8 2D-particles over time](./docs/assets/sample_particle_plot.pdf)
+![1D Projection of 8 2D-particles over time](./docs/assets/sample_particle_plot.png)
 
 ## Usage
 
