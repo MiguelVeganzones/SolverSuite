@@ -22,7 +22,6 @@ set(RELEASE_CXX_FLAGS
 	-Wreturn-local-addr
 	-Wshadow
 	-Wuninitialized
-	-fbounds-check
 	-fconcepts-diagnostics-depth=3
 	-fdiagnostics-color=always
 	-fdiagnostics-path-format=inline-events
@@ -72,7 +71,8 @@ foreach(PROFILE_FILE ${PROFILE_FILES})
     get_filename_component(TARGET_NAME ${PROFILE_FILE} NAME_WE)
     set(TARGET_NAME "${TARGET_NAME}_perf")
     add_executable(${TARGET_NAME} ${PROFILE_FILE})
-    target_compile_options(${TARGET_NAME} PRIVATE "${CXX_FLAGS};-ggdb3")
+    target_compile_options(${TARGET_NAME} PRIVATE
+    "${CXX_FLAGS};-ggdb3")
     target_link_options(${TARGET_NAME} PRIVATE ${LINK_FLAGS})
 endforeach()
 

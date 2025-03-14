@@ -13,7 +13,7 @@ namespace data_types::operation_utils
 template <std::size_t N, std::size_t I = 0>
     requires(N > I)
 [[nodiscard]]
-auto expr_reduce(
+constexpr auto expr_reduce(
     std::ranges::input_range auto const& range_a,
     std::ranges::input_range auto const& range_b
 ) noexcept -> decltype(auto)
@@ -33,7 +33,7 @@ auto expr_reduce(
 }
 
 [[nodiscard]]
-constexpr auto subscript(auto&& v, std::integral auto idx) noexcept
+constexpr auto subscript(auto&& v, std::integral auto const idx) noexcept
 {
     if constexpr (std::ranges::range<std::remove_cvref_t<decltype(v)>>)
     {
@@ -51,13 +51,13 @@ constexpr auto subscript(auto&& v, std::integral auto idx) noexcept
 
 template <std::ranges::range T>
 [[gnu::pure, nodiscard]]
-auto distance(T const& p1, T const& p2) noexcept -> T
+constexpr auto distance(T const& p1, T const& p2) noexcept -> T
 {
     return T(p2 - p1);
 }
 
 [[gnu::pure, nodiscard]]
-auto l2_norm_sq(std::ranges::range auto const& v) noexcept ->
+constexpr auto l2_norm_sq(std::ranges::range auto const& v) noexcept ->
     typename std::remove_cvref_t<decltype(v)>::value_type
 {
     using value_type = typename std::remove_cvref_t<decltype(v)>::value_type;
@@ -71,26 +71,41 @@ auto l2_norm_sq(std::ranges::range auto const& v) noexcept ->
 }
 
 [[gnu::pure, nodiscard]]
-auto l2_norm(std::ranges::range auto const& v) noexcept ->
+constexpr auto l2_norm_sq(std::ranges::range auto const& v) noexcept ->
+    typename std::remove_cvref_t<decltype(v)>::value_type
+    requires dt_concepts::StaticArray<std::remove_reference_t<decltype(v)>>
+{
+    using value_type = typename std::remove_cvref_t<decltype(v)>::value_type;
+    constexpr auto n = std::remove_reference_t<decltype(v)>::size();
+    value_type     ret{};
+    for (auto i = decltype(n){}; i != n; ++i)
+    {
+        ret += v[i] * v[i];
+    }
+    return ret;
+}
+
+[[gnu::pure, nodiscard]]
+constexpr auto l2_norm(std::ranges::range auto const& v) noexcept ->
     typename std::remove_cvref_t<decltype(v)>::value_type
 {
     return std::sqrt(l2_norm_sq(v));
 }
 
 [[gnu::pure, nodiscard]]
-auto linfinity_norm(std::ranges::range auto const& v) noexcept ->
+constexpr auto linfinity_norm(std::ranges::range auto const& v) noexcept ->
     typename std::remove_cvref_t<decltype(v)>::value_type
 {
     return std::ranges::max(v);
 }
 
 [[gnu::pure, nodiscard]]
-auto normalize(std::ranges::range auto const& v) noexcept -> std::pair<
-    std::remove_cvref_t<decltype(v)>,
-    typename std::remove_cvref_t<decltype(v)>::value_type>
+constexpr auto normalize(std::ranges::range auto& v) noexcept ->
+    typename std::remove_cvref_t<decltype(v)>::value_type
 {
     const auto norm = l2_norm(std::forward<decltype(v)>(v));
-    return { decltype(v)(v / norm), norm };
+    std::ranges::transform(v, [norm](auto& e) { return e / norm; });
+    return norm;
 }
 
 } // namespace data_types::operation_utils

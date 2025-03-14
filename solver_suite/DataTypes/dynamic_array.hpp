@@ -287,7 +287,7 @@ public:
         {
             a[idx] = std::invoke(
                 std::forward<decltype(binary_op)>(binary_op),
-                a[idx],
+                std::move(a[idx]),
                 operation_utils::subscript(b, idx)
             );
         }

@@ -18,30 +18,45 @@ template <
     typename State_Type,
     typename Deriv_Type,
     typename Time_Type>
-class generic_runge_kutta_base : public explicit_stepers_base<
-                                     generic_runge_kutta_base<
-                                         Stage_Count,
-                                         Order,
-                                         Value_Type,
-                                         State_Type,
-                                         Deriv_Type,
-                                         Time_Type>,
-                                     Order,
-                                     Value_Type,
-                                     State_Type,
-                                     Deriv_Type,
-                                     Time_Type>
+class generic_runge_kutta : public explicit_stepers_base<
+                                generic_runge_kutta<
+                                    Stage_Count,
+                                    Order,
+                                    Value_Type,
+                                    State_Type,
+                                    Deriv_Type,
+                                    Time_Type>,
+                                Order,
+                                Value_Type,
+                                State_Type,
+                                Deriv_Type,
+                                Time_Type>
 {
-private:
-    inline static constexpr auto s_stage_count = (int)Stage_Count;
-
 public:
-    using size_type      = std::size_t;
+    using stepper_base_type = explicit_stepers_base<
+        generic_runge_kutta<
+            Stage_Count,
+            Order,
+            Value_Type,
+            State_Type,
+            Deriv_Type,
+            Time_Type>,
+        Order,
+        Value_Type,
+        State_Type,
+        Deriv_Type,
+        Time_Type>;
+    using size_type      = typename stepper_base_type::size_type;
+    using order_type     = typename stepper_base_type::order_type;
     using value_type     = Value_Type;
     using state_type     = State_Type;
     using deriv_type     = Deriv_Type;
     using time_type      = Time_Type;
-    using rk_params_type = butcher_tableau<value_type, s_stage_count>;
+    using rk_params_type = butcher_tableau<value_type, Stage_Count>;
+
+private:
+    inline static constexpr auto s_stage_count = static_cast<order_type>(Stage_Count);
+
 
 public:
     constexpr generic_runge_kutta_base(rk_params_type rk_params) noexcept
@@ -56,15 +71,6 @@ public:
         : m_rk_params{ rk_params }
     {
         resize_internals(n);
-        /*
-        std::cout << m_x_tmp.cbegin() << '\n';
-        std::cout << m_x_tmp.cend() << '\n';
-        for (auto& v : m_dxdt)
-        {
-            std::cout << v.cbegin() << '\n';
-            std::cout << v.cend() << '\n';
-        }
-        */
     }
 
     [[nodiscard]]
@@ -108,13 +114,7 @@ public:
             }
             system(m_x_tmp, m_dxdt[j], t_j);
         }
-        /*
-        const auto& b = m_rk_params.b();
-        x_in_out += dt * expr_reduce<Stage_Count>(m_dxdt, b);
-        */
         x_in_out += dt * result_expr();
-        // x_in_out += dt * (m_dxdt[0] * b[0] + m_dxdt[1] * b[1] + m_dxdt[2] * b[2] +
-        // m_dxdt[3] * b[3]);
     }
 
     [[nodiscard]]

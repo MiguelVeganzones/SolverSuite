@@ -4,6 +4,7 @@
 #include "explicit_stepper_base.hpp"
 #include <cassert>
 #include <concepts>
+#include <cstdint>
 
 namespace solvers::explicit_stepers
 {
@@ -15,25 +16,33 @@ template <
     typename Time_Type>
 class explicit_euler : public explicit_stepers_base<
                            explicit_euler<Value_Type, State_Type, Deriv_Type, Time_Type>,
-                           1uz,
+                           1,
                            Value_Type,
                            State_Type,
                            Deriv_Type,
                            Time_Type>
 {
 public:
-    using size_type  = std::size_t;
+    using stepper_base_type = explicit_stepers_base<
+        explicit_euler<Value_Type, State_Type, Deriv_Type, Time_Type>,
+        1,
+        Value_Type,
+        State_Type,
+        Deriv_Type,
+        Time_Type>;
+    using size_type  = typename stepper_base_type::size_type;
+    using order_type = typename stepper_base_type::order_type;
     using value_type = Value_Type;
     using state_type = State_Type;
     using deriv_type = Deriv_Type;
     using time_type  = Time_Type;
 
 private:
-    inline static constexpr auto s_stage_count = 1uz;
+    inline static constexpr order_type s_stage_count = 1;
 
 public:
     [[nodiscard]]
-    static constexpr auto stage_count() noexcept -> size_type
+    static constexpr auto stage_count() noexcept -> decltype(s_stage_count)
     {
         return s_stage_count;
     }

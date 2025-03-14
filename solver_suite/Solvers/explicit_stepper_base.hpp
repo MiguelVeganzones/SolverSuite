@@ -1,6 +1,7 @@
 #pragma once
 
 #include <concepts>
+#include <cstdint>
 #include <utility>
 
 namespace solvers::explicit_stepers
@@ -8,7 +9,7 @@ namespace solvers::explicit_stepers
 
 template <
     typename Stepper,
-    std::size_t         Order,
+    std::uint8_t        Order,
     std::floating_point Value_Type,
     typename State_Type,
     typename Deriv_Type,
@@ -18,13 +19,14 @@ class explicit_stepers_base
 public:
     using stepper_type = Stepper;
     using size_type    = std::size_t;
+    using order_type   = std::uint8_t;
     using value_type   = Value_Type;
     using state_type   = State_Type;
     using deriv_type   = Deriv_Type;
     using time_type    = Time_Type;
 
 private:
-    inline static constexpr auto s_order = Order;
+    inline static constexpr auto s_order = static_cast<order_type>(Order);
 
 public:
     [[nodiscard]]
@@ -40,7 +42,7 @@ public:
     }
 
     [[nodiscard]]
-    static constexpr auto order() noexcept -> size_type
+    static constexpr auto order() noexcept -> order_type
     {
         return s_order;
     }
