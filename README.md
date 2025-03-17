@@ -14,6 +14,7 @@ This project is early in its development and is current work in progress.
 ### Numerical Solvers
 Implemented solvers are:
 - **Explicit Generic Runge Kutta**: Explicit generic Runge Kutta implementation. Specializations for common variants will be provided.
+- **Explicit Generic Embedded Runge Kutta**: Explicit generic controlled Runge Kutta implementation. Specializations for common variants will be provided. Current implementation is untested.
 
 ### Data Types
 - Dynamic array container with lazily evaluated arithmetic operations with the use
