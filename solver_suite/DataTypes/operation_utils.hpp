@@ -2,6 +2,7 @@
 
 #include "data_type_concepts.hpp"
 #include <algorithm>
+#include <cassert>
 #include <cmath>
 #include <concepts>
 #include <ranges>
@@ -32,16 +33,17 @@ constexpr auto expr_reduce(
     }
 }
 
+template <typename T>
 [[nodiscard]]
-constexpr auto subscript(auto&& v, std::integral auto const idx) noexcept
+constexpr auto subscript(T&& v, std::integral auto const idx) noexcept
 {
-    if constexpr (std::ranges::range<std::remove_cvref_t<decltype(v)>>)
-    {
-        return *std::ranges::next(std::begin(v), idx);
-    }
-    else if constexpr (dt_concepts::ExpressionTemplate<std::remove_cvref_t<decltype(v)>>)
+    if constexpr (dt_concepts::Indexable<T>)
     {
         return v[idx];
+    }
+    else if constexpr (std::ranges::range<T>)
+    {
+        return *std::ranges::next(std::begin(v), idx);
     }
     else
     {
@@ -96,7 +98,9 @@ constexpr auto l2_norm(std::ranges::range auto const& v) noexcept ->
 constexpr auto linfinity_norm(std::ranges::range auto const& v) noexcept ->
     typename std::remove_cvref_t<decltype(v)>::value_type
 {
-    return std::ranges::max(v);
+    return std::ranges::max(v | std::views::transform([](auto const& e) {
+                                return std::abs(e);
+                            }));
 }
 
 [[gnu::pure, nodiscard]]

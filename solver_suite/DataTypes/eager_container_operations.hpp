@@ -7,7 +7,7 @@
 #include <type_traits>
 #include <utility>
 
-namespace data_types::static_containers
+namespace data_types::eagerly_evaluated_containers
 {
 
 constexpr auto operator+(auto&& a, auto&& b) noexcept -> decltype(auto)
@@ -88,4 +88,4 @@ constexpr auto operator_impl(auto&& a, auto&& b, auto&& binary_op) noexcept
     }
 }
 
-} // namespace data_types::static_containers
+} // namespace data_types::eagerly_evaluated_containers

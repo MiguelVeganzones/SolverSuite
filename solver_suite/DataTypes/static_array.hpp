@@ -10,7 +10,7 @@
 #include <iostream>
 #include <type_traits>
 
-namespace data_types::static_containers
+namespace data_types::eagerly_evaluated_containers
 {
 
 template <typename T, std::size_t N>
@@ -195,7 +195,7 @@ auto operator<<(std::ostream& os, static_array<T, N> const& v) noexcept -> std::
     return os;
 }
 
-} // namespace data_types::static_containers
+} // namespace data_types::eagerly_evaluated_containers
 
 // std::common_type specialization
 namespace std
@@ -203,15 +203,15 @@ namespace std
 {
 
 template <typename T, std::size_t N>
-struct common_type<data_types::static_containers::static_array<T, N>, T>
+struct common_type<data_types::eagerly_evaluated_containers::static_array<T, N>, T>
 {
-    using type = data_types::static_containers::static_array<T, N>;
+    using type = data_types::eagerly_evaluated_containers::static_array<T, N>;
 };
 
 template <typename T, std::size_t N>
-struct common_type<T, data_types::static_containers::static_array<T, N>>
+struct common_type<T, data_types::eagerly_evaluated_containers::static_array<T, N>>
 {
-    using type = data_types::static_containers::static_array<T, N>;
+    using type = data_types::eagerly_evaluated_containers::static_array<T, N>;
 };
 
 } // namespace std

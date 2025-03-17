@@ -8,17 +8,16 @@
 #include <initializer_list>
 #include <iostream>
 #include <memory>
-#include <type_traits>
 
 #define DISABLE_MOVE
 
 // #define DISABLE_COPY
 
-namespace data_types::dynamic_containers
+namespace data_types::lazily_evaluated_containers
 {
 
 template <typename T, typename Allocator = std::allocator<T>>
-class dynamic_array : private Allocator
+class dynamic_array : private Allocator, dt_concepts::dynamic_array_base
 {
 public:
     using value_type  = T;
@@ -330,22 +329,22 @@ auto operator<<(std::ostream& os, dynamic_array<T, Allocator> const& v) noexcept
     return os;
 }
 
-} // namespace data_types::dynamic_containers
+} // namespace data_types::lazily_evaluated_containers
 
 // std::common_type specialization
 namespace std
 {
 
 template <typename T>
-struct common_type<data_types::dynamic_containers::dynamic_array<T>, T>
+struct common_type<data_types::lazily_evaluated_containers::dynamic_array<T>, T>
 {
-    using type = data_types::dynamic_containers::dynamic_array<T>;
+    using type = data_types::lazily_evaluated_containers::dynamic_array<T>;
 };
 
 template <typename T>
-struct common_type<T, data_types::dynamic_containers::dynamic_array<T>>
+struct common_type<T, data_types::lazily_evaluated_containers::dynamic_array<T>>
 {
-    using type = data_types::dynamic_containers::dynamic_array<T>;
+    using type = data_types::lazily_evaluated_containers::dynamic_array<T>;
 };
 
 } // namespace std

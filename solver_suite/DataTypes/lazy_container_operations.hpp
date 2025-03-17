@@ -11,7 +11,7 @@
 
 // Needs to be in the same namespace for name resolution of constructors,
 // unfortunately
-namespace data_types::dynamic_containers
+namespace data_types::lazily_evaluated_containers
 {
 
 template <typename Callable, typename... Operands>
@@ -20,8 +20,8 @@ class expr : dt_concepts::expression_templates_base
 {
 private:
     template <typename T>
-    using storage_t =
-        std::conditional_t<dt_concepts::DynamicArray<T>, T const&, std::decay_t<T>>;
+    using storage_t = std::
+        conditional_t<dt_concepts::ExprHoldReferenceType<T>, T const&, std::decay_t<T>>;
 
 public:
     using callable_t      = Callable;
@@ -109,4 +109,11 @@ auto operator/(auto&& lhs, auto&& rhs) noexcept -> decltype(auto)
                  std::forward<decltype(rhs)>(rhs) };
 }
 
-} // namespace data_types::dynamic_containers
+[[nodiscard]]
+auto abs(auto&& value) noexcept -> decltype(auto)
+{
+    return expr{ [](auto&& v) noexcept { return v < 0 ? -v : v; },
+                 std::forward<decltype(value)>(value) };
+}
+
+} // namespace data_types::lazily_evaluated_containers
