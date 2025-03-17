@@ -1,7 +1,7 @@
 #include "TApplication.h"
 #include "allocator_wrapper.hpp"
 #include "dynamic_array.hpp"
-#include "generic_runge_kutta.hpp"
+#include "explicit_generic_runge_kutta.hpp"
 #include "runge_kutta_params.hpp"
 #include "series_plot_2D.hpp"
 #include "stack_allocator.hpp"
@@ -22,7 +22,7 @@ int main()
     using time_type       = F;
     using Allocator       = allocators::dynamic_stack_allocator<F>;
     using StaticAllocator = allocators::static_allocator<Allocator>;
-    using vector = data_types::dynamic_containers::dynamic_array<F, StaticAllocator>;
+    using vector = data_types::lazily_evaluated_containers::dynamic_array<F, StaticAllocator>;
     Allocator allocator(100);
     StaticAllocator::set_allocator(allocator);
 
@@ -45,7 +45,7 @@ int main()
     }
 
     using rk_t = solvers::explicit_stepers::
-        generic_runge_kutta_base<4, 4, F, vector, vector, time_type>;
+        generic_runge_kutta<4, 4, F, vector, vector, time_type>;
 
     auto system = [](auto const& z,
                      auto&       dzdt,

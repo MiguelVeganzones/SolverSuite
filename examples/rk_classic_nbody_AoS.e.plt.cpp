@@ -1,7 +1,7 @@
 #include "TApplication.h"
 #include "allocator_wrapper.hpp"
 #include "dynamic_array.hpp"
-#include "generic_runge_kutta.hpp"
+#include "explicit_generic_runge_kutta.hpp"
 #include "operation_utils.hpp"
 #include "random.hpp"
 #include "runge_kutta_params.hpp"
@@ -17,7 +17,7 @@
 template <typename F, std::size_t N>
 struct nbody_system
 {
-    using vec_t = data_types::static_containers::static_array<F, N>;
+    using vec_t = data_types::eagerly_evaluated_containers::static_array<F, N>;
     inline static constexpr auto epsilon = static_cast<F>(4.5e-1);
     int                          iter    = 0;
 
@@ -71,13 +71,13 @@ int main()
     using time_type  = F;
     constexpr auto N = 2; // Dimension
     const auto     n = 8; // Particles
-    using SVec       = data_types::static_containers::static_array<
+    using SVec       = data_types::eagerly_evaluated_containers::static_array<
               F,
               N * 2>; // * 2 Because to solve a second order differential equation with runge
                       // kutta, the state needs to be pos,vel, and the derivative vel,acc.
     using Allocator       = allocators::dynamic_stack_allocator<SVec>;
     using StaticAllocator = allocators::static_allocator<Allocator>;
-    using vector = data_types::dynamic_containers::dynamic_array<SVec, StaticAllocator>;
+    using vector = data_types::lazily_evaluated_containers::dynamic_array<SVec, StaticAllocator>;
     Allocator allocator(N * n * 10);
     StaticAllocator::set_allocator(allocator);
 
@@ -118,7 +118,7 @@ int main()
     }
 
     using rk_t = solvers::explicit_stepers::
-        generic_runge_kutta_base<4, 4, F, vector, vector, time_type>;
+        generic_runge_kutta<4, 4, F, vector, vector, time_type>;
 
     auto   t_i   = t0;
     vector y_hat = y0;

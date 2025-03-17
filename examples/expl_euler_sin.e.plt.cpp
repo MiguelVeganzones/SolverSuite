@@ -17,7 +17,7 @@ int main()
 
     using F         = float;
     using time_type = F;
-    using vector_t  = data_types::static_containers::static_array<F, 2>;
+    using vector_t  = data_types::eagerly_evaluated_containers::static_array<F, 2>;
 
     const auto     dt    = F{ 0.01f };
     time_type      t0    = 0;

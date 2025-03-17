@@ -18,9 +18,9 @@ class static_buffer_interface
 {
 public:
     // TODO: signed integer types may be faster due to a narrower contract
-    using size_type                                         = std::size_t;
-    using index_t                                           = std::size_t;
-    using layout_policy_t                                   = buffer_config::LayoutPolicy;
+    using size_type                                  = std::size_t;
+    using index_t                                    = std::size_t;
+    using layout_policy_t                            = buffer_config::LayoutPolicy;
     static constexpr size_type s_size_y              = Size_Y;
     static constexpr size_type s_size_x              = Size_X;
     static constexpr auto      s_layout_policy       = Layout_Policy;
@@ -80,15 +80,15 @@ public:
     }
 
     [[nodiscard, gnu::const]]
-    static constexpr auto size_x() noexcept -> size_type
-    {
-        return s_size_x;
-    }
-
-    [[nodiscard, gnu::const]]
     static constexpr auto size_y() noexcept -> size_type
     {
         return s_size_y;
+    }
+
+    [[nodiscard, gnu::const]]
+    static constexpr auto size_x() noexcept -> size_type
+    {
+        return s_size_x;
     }
 
     [[nodiscard, gnu::const]]
@@ -116,8 +116,7 @@ public:
     }
 
     [[nodiscard, gnu::const]]
-    constexpr auto flat_projection(index_t idx_y, index_t idx_x) const noexcept
-        -> index_t
+    constexpr auto flat_projection(index_t idx_y, index_t idx_x) const noexcept -> index_t
     {
         assert(idx_y < s_size_y);
         assert(idx_x < s_size_x);
@@ -140,9 +139,9 @@ template <std::size_t Size_X>
 class dynamic_length
 {
 public:
-    using size_type                            = std::size_t;
-    using index_t                              = std::size_t;
-    using layout_policy_t                      = buffer_config::LayoutPolicy;
+    using size_type                     = std::size_t;
+    using index_t                       = std::size_t;
+    using layout_policy_t               = buffer_config::LayoutPolicy;
     static constexpr size_type s_size_y = std::dynamic_extent;
     static constexpr size_type s_size_x = Size_X;
     static_assert(s_size_x > 0);
@@ -211,7 +210,7 @@ public:
     [[nodiscard]]
     constexpr auto flat_size() const noexcept -> size_type
     {
-        return size_y_ * s_size_x;
+        return size_y() * size_x();
     }
 
     [[nodiscard]]
@@ -229,12 +228,11 @@ public:
     [[nodiscard]]
     constexpr auto underlying_flat_size() const noexcept -> size_type
     {
-        return underlying_size_x_ * underlying_size_y_;
+        return underlying_size_y() * underlying_size_x();
     }
 
     [[nodiscard, gnu::const]]
-    constexpr auto flat_projection(index_t idx_y, index_t idx_x) const noexcept
-        -> index_t
+    constexpr auto flat_projection(index_t idx_y, index_t idx_x) const noexcept -> index_t
     {
         assert(idx_y < size_y_);
         assert(idx_x < s_size_x);
@@ -254,9 +252,9 @@ private:
 class dynamic_shape
 {
 public:
-    using size_type                            = std::size_t;
-    using index_t                              = std::size_t;
-    using layout_policy_t                      = buffer_config::LayoutPolicy;
+    using size_type                     = std::size_t;
+    using index_t                       = std::size_t;
+    using layout_policy_t               = buffer_config::LayoutPolicy;
     static constexpr size_type s_size_y = std::dynamic_extent;
     static constexpr size_type s_size_x = std::dynamic_extent;
 
@@ -352,8 +350,7 @@ public:
     }
 
     [[nodiscard, gnu::const]]
-    constexpr auto flat_projection(index_t idx_y, index_t idx_x) const noexcept
-        -> index_t
+    constexpr auto flat_projection(index_t idx_y, index_t idx_x) const noexcept -> index_t
     {
         assert(idx_y < size_y_);
         assert(idx_x < size_x_);

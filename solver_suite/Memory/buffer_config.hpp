@@ -12,20 +12,22 @@ enum struct LayoutPolicy
 };
 
 template <std::size_t Padding_Stride>
-struct layout_padding;
+struct layout_stride;
 
 template <>
-struct layout_padding<0uz>
+struct layout_stride<0uz>
 {
-    static constexpr auto s_padded = false;
-    static constexpr auto value    = 0;
+    using size_type                     = std::size_t;
+    static constexpr auto      s_padded = false;
+    static constexpr size_type value    = static_cast<size_type>(0);
 };
 
 template <std::size_t Padding_Stride>
-struct layout_padding
+struct layout_stride
 {
-    static constexpr auto s_padded = true;
-    static constexpr auto value    = Padding_Stride;
+    using size_type                     = std::size_t;
+    static constexpr auto      s_padded = true;
+    static constexpr size_type value    = static_cast<size_type>(Padding_Stride);
 };
 
 } // namespace buffers::buffer_config

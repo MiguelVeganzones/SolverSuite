@@ -8,7 +8,7 @@ TEST(DynamicArrayBasics, Assignment)
 {
     using F                 = float;
     static constexpr auto N = 150;
-    using vector_t          = data_types::dynamic_containers::dynamic_array<F>;
+    using vector_t          = data_types::lazily_evaluated_containers::dynamic_array<F>;
 
     for (std::size_t j = 0; j != 250; ++j)
     {
@@ -33,7 +33,7 @@ TEST(DynamicArrayOperations, VectorScalarPlus)
     using F                 = float;
     static constexpr auto N = 250;
 
-    using vector_t = data_types::dynamic_containers::dynamic_array<F>;
+    using vector_t = data_types::lazily_evaluated_containers::dynamic_array<F>;
 
     for (std::size_t j = 0; j != 250; ++j)
     {
@@ -60,7 +60,7 @@ TEST(DynamicArrayOperations, VectorVectorPlus)
     using F                 = float;
     static constexpr auto N = 250;
 
-    using vector_t = data_types::dynamic_containers::dynamic_array<F>;
+    using vector_t = data_types::lazily_evaluated_containers::dynamic_array<F>;
 
     for (std::size_t j = 0; j != 250; ++j)
     {
@@ -92,7 +92,7 @@ TEST(DynamicArrayOperations, VectorScalarMinus)
     using F                 = float;
     static constexpr auto N = 250;
 
-    using vector_t = data_types::dynamic_containers::dynamic_array<F>;
+    using vector_t = data_types::lazily_evaluated_containers::dynamic_array<F>;
 
     for (std::size_t j = 0; j != 250; ++j)
     {
@@ -119,7 +119,7 @@ TEST(DynamicArrayOperations, VectorVectorMinus)
     using F                 = float;
     static constexpr auto N = 250;
 
-    using vector_t = data_types::dynamic_containers::dynamic_array<F>;
+    using vector_t = data_types::lazily_evaluated_containers::dynamic_array<F>;
 
     for (std::size_t j = 0; j != 250; ++j)
     {
@@ -149,7 +149,7 @@ TEST(DynamicArrayOperations, VectorScalarMultiplies)
     using F                 = float;
     static constexpr auto N = 250;
 
-    using vector_t = data_types::dynamic_containers::dynamic_array<F>;
+    using vector_t = data_types::lazily_evaluated_containers::dynamic_array<F>;
 
     for (std::size_t j = 0; j != 200; ++j)
     {
@@ -177,7 +177,7 @@ TEST(DynamicArrayOperations, VectorVectorMultiplies)
     using F                 = float;
     static constexpr auto N = 250;
 
-    using vector_t = data_types::dynamic_containers::dynamic_array<F>;
+    using vector_t = data_types::lazily_evaluated_containers::dynamic_array<F>;
 
     for (std::size_t j = 0; j != 200; ++j)
     {
@@ -208,7 +208,7 @@ TEST(DynamicArrayOperations, VectorScalarDivides)
     using F                 = float;
     static constexpr auto N = 250;
 
-    using vector_t = data_types::dynamic_containers::dynamic_array<F>;
+    using vector_t = data_types::lazily_evaluated_containers::dynamic_array<F>;
 
     for (std::size_t j = 0; j != 200; ++j)
     {
@@ -236,7 +236,7 @@ TEST(DynamicArrayOperations, VectorVectorDivides)
     using F                 = float;
     static constexpr auto N = 250;
 
-    using vector_t = data_types::dynamic_containers::dynamic_array<F>;
+    using vector_t = data_types::lazily_evaluated_containers::dynamic_array<F>;
 
     for (std::size_t j = 0; j != 200; ++j)
     {

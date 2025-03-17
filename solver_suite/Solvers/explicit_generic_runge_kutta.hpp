@@ -59,24 +59,21 @@ private:
 
 
 public:
-    constexpr generic_runge_kutta_base(rk_params_type rk_params) noexcept
+    constexpr generic_runge_kutta(rk_params_type rk_params) noexcept
         : m_rk_params{ rk_params }
     {
     }
 
-    constexpr generic_runge_kutta_base(
-        size_type             n,
-        rk_params_type const& rk_params
-    ) noexcept
+    constexpr generic_runge_kutta(size_type n, rk_params_type const& rk_params) noexcept
         : m_rk_params{ rk_params }
     {
         resize_internals(n);
     }
 
     [[nodiscard]]
-    static constexpr auto stage_count() noexcept -> size_type
+    static constexpr auto stage_count() noexcept -> order_type
     {
-        return Stage_Count;
+        return s_stage_count;
     }
 
     auto do_step_impl(
@@ -86,20 +83,7 @@ public:
         time_type   dt
     ) noexcept -> void
     {
-#ifndef NDEBUG
-        if constexpr (data_types::dt_concepts::SizedInstance<deriv_type>)
-        {
-            assert(x_in_out.size() == m_x_tmp.size());
-        }
-        if constexpr (data_types::dt_concepts::SizedInstance<deriv_type> &&
-                      data_types::dt_concepts::SizedInstance<state_type>)
-        {
-            for (auto const& dx : m_dxdt)
-            {
-                assert(x_in_out.size() == dx.size());
-            }
-        }
-#endif
+        assert_size_compatibility(x_in_out.size());
 
         system(x_in_out, m_dxdt[0], t);
         for (auto j = 1; j < s_stage_count; ++j)
@@ -124,6 +108,7 @@ public:
         static const auto expr = data_types::operation_utils::expr_reduce<Stage_Count>(
             m_dxdt, m_rk_params.b()
         );
+        static_assert(data_types::dt_concepts::ExpressionTemplate<decltype(expr)>);
         return expr;
     }
 
@@ -177,10 +162,29 @@ public:
         }
     }
 
+    auto assert_size_compatibility([[maybe_unused]] const size_type n) const noexcept
+        -> void
+    {
+#ifndef NDEBUG
+        if constexpr (data_types::dt_concepts::SizedInstance<state_type>)
+        {
+            assert(n == m_x_tmp.size());
+        }
+        if constexpr (data_types::dt_concepts::SizedInstance<deriv_type> &&
+                      data_types::dt_concepts::SizedInstance<state_type>)
+        {
+            for (auto const& dx : m_dxdt)
+            {
+                assert(n == dx.size());
+            }
+        }
+#endif
+    }
+
 private:
-    alignas(64) rk_params_type m_rk_params;
-    alignas(64) state_type m_x_tmp;
-    alignas(64) deriv_type m_dxdt[Stage_Count];
+    rk_params_type m_rk_params;
+    state_type     m_x_tmp;
+    deriv_type     m_dxdt[Stage_Count];
 };
 
 } // namespace solvers::explicit_stepers

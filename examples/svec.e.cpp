@@ -34,8 +34,8 @@ int main()
 
     using F          = float;
     constexpr auto N = 10uz;
-    using vector_f   = data_types::static_containers::static_array<F, N>;
-    using vector_ndc = data_types::static_containers::static_array<ndc, N>;
+    using vector_f   = data_types::eagerly_evaluated_containers::static_array<F, N>;
+    using vector_ndc = data_types::eagerly_evaluated_containers::static_array<ndc, N>;
     vector_f v1;
     vector_f v2;
     vector_f v3;

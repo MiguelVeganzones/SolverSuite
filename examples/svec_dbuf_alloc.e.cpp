@@ -14,10 +14,10 @@ int main()
     using F              = float;
     constexpr auto N     = 6uz;
     const auto     n     = 15;
-    using SVec           = data_types::static_containers::static_array<F, N>;
+    using SVec           = data_types::eagerly_evaluated_containers::static_array<F, N>;
     using Allocator      = allocators::dynamic_stack_allocator<SVec>;
     using AllocatorPimpl = allocators::allocator_pimpl<Allocator>;
-    using vector = data_types::dynamic_containers::dynamic_array<SVec, AllocatorPimpl>;
+    using vector = data_types::lazily_evaluated_containers::dynamic_array<SVec, AllocatorPimpl>;
     static_assert(std::ranges::range<vector>);
     Allocator allocator(N * n);
     vector    v1(n, allocator);

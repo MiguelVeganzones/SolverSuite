@@ -1,7 +1,7 @@
 #include "allocator_wrapper.hpp"
 #include "bm_utils.hpp"
 #include "dynamic_array.hpp"
-#include "generic_runge_kutta.hpp"
+#include "explicit_generic_runge_kutta.hpp"
 #include "operation_utils.hpp"
 #include "random.hpp"
 #include "runge_kutta_params.hpp"
@@ -22,7 +22,7 @@ constexpr auto n = 24; // Particles
 template <typename F, std::size_t N>
 struct nbody_system_AoS
 {
-    using vec_t = data_types::static_containers::static_array<F, N>;
+    using vec_t = data_types::eagerly_evaluated_containers::static_array<F, N>;
     inline static constexpr auto epsilon = static_cast<F>(4.5e-1);
 
     // mutable int                  iter    = 0;
@@ -75,13 +75,13 @@ static void BM_ParticleSimulation_AoS(benchmark::State& state)
 {
     using F         = float_value_type;
     using time_type = F;
-    using SVec      = data_types::static_containers::static_array<
+    using SVec      = data_types::eagerly_evaluated_containers::static_array<
              F,
              N * 2>; // * 2 Because to solve a second order differential equation with runge
                      // kutta, the state needs to be pos,vel, and the derivative vel,acc.
     using Allocator       = allocators::dynamic_stack_allocator<SVec>;
     using StaticAllocator = allocators::static_allocator<Allocator>;
-    using vector = data_types::dynamic_containers::dynamic_array<SVec, StaticAllocator>;
+    using vector = data_types::lazily_evaluated_containers::dynamic_array<SVec, StaticAllocator>;
     Allocator allocator(N * n * 2 * 10);
     StaticAllocator::set_allocator(allocator);
     utility::random::srandom::seed<F>((unsigned int)SEED1);
@@ -93,7 +93,7 @@ static void BM_ParticleSimulation_AoS(benchmark::State& state)
     const auto k = (int)std::ceil(t_end / dt);
 
     using rk_t = solvers::explicit_stepers::
-        generic_runge_kutta_base<4, 4, F, vector, vector, time_type>;
+        generic_runge_kutta<4, 4, F, vector, vector, time_type>;
     rk_t stepper(
         n,
         solvers::explicit_stepers::butcher_tableau<F, 4>{
@@ -130,7 +130,7 @@ BENCHMARK(BM_ParticleSimulation_AoS);
 template <typename F, std::size_t N>
 struct nbody_system_SoA
 {
-    using vec_t = data_types::static_containers::static_array<F, N>;
+    using vec_t = data_types::eagerly_evaluated_containers::static_array<F, N>;
     inline static constexpr auto epsilon = static_cast<F>(4.5e-1);
 
     nbody_system_SoA(std::size_t n)
@@ -190,8 +190,8 @@ static void BM_ParticleSimulation_SoA(benchmark::State& state)
     using time_type       = F;
     using Allocator       = allocators::dynamic_stack_allocator<F>;
     using StaticAllocator = allocators::static_allocator<Allocator>;
-    using DVec   = data_types::dynamic_containers::dynamic_array<F, StaticAllocator>;
-    using vector = data_types::static_containers::static_array<
+    using DVec   = data_types::lazily_evaluated_containers::dynamic_array<F, StaticAllocator>;
+    using vector = data_types::eagerly_evaluated_containers::static_array<
         DVec,
         N * 2>; // * 2 Because to solve a second order differential equation with runge
                 // kutta, the state needs to be pos,vel, and the derivative vel,acc.
@@ -206,7 +206,7 @@ static void BM_ParticleSimulation_SoA(benchmark::State& state)
     const auto k     = (int)std::ceil(t_end / dt);
 
     using rk_t = solvers::explicit_stepers::
-        generic_runge_kutta_base<4, 4, F, vector, vector, time_type>;
+        generic_runge_kutta<4, 4, F, vector, vector, time_type>;
     rk_t stepper(
         n,
         solvers::explicit_stepers::butcher_tableau<F, 4>{

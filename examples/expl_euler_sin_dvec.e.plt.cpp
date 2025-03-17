@@ -21,9 +21,11 @@ int main()
     using time_type       = F;
     using Allocator       = allocators::dynamic_stack_allocator<F>;
     using StaticAllocator = allocators::static_allocator<Allocator>;
-    using vector = data_types::dynamic_containers::dynamic_array<F, StaticAllocator>;
+    using vector = data_types::lazily_evaluated_containers::dynamic_array<F, StaticAllocator>;
     Allocator allocator(100);
     StaticAllocator::set_allocator(allocator);
+
+    std::cout << &StaticAllocator::s_pimpl_.impl() << '\n';
 
     const auto   dt    = F{ 0.01f };
     time_type    t0    = 0;
@@ -60,7 +62,7 @@ int main()
     auto   t     = t0;
     vector y_hat = y0;
     y[1][0]      = y_hat[0];
-    ee_t stepper;
+    ee_t stepper(2);
     stepper.resize_internals(2);
     for (auto i = 1; i != n; ++i)
     {

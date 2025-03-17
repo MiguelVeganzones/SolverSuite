@@ -13,7 +13,7 @@ int main()
     using F              = float;
     using Allocator      = allocators::dynamic_stack_allocator<F>;
     using AllocatorPimpl = allocators::allocator_pimpl<Allocator>;
-    using vector = data_types::dynamic_containers::dynamic_array<F, AllocatorPimpl>;
+    using vector = data_types::lazily_evaluated_containers::dynamic_array<F, AllocatorPimpl>;
     Allocator allocator(100);
     static_assert(std::ranges::range<vector>);
     const auto n = 5;

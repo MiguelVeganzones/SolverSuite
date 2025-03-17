@@ -17,8 +17,8 @@ int main()
     const auto     n     = 6uz;
     using Allocator      = allocators::dynamic_stack_allocator<F>;
     using AllocatorPimpl = allocators::allocator_pimpl<Allocator>;
-    using DVec     = data_types::dynamic_containers::dynamic_array<F, AllocatorPimpl>;
-    using buffer_t = data_types::static_containers::static_array<DVec, N>;
+    using DVec     = data_types::lazily_evaluated_containers::dynamic_array<F, AllocatorPimpl>;
+    using buffer_t = data_types::eagerly_evaluated_containers::static_array<DVec, N>;
     static_assert(std::ranges::range<buffer_t>);
     Allocator allocator(N * n);
     buffer_t  v1;

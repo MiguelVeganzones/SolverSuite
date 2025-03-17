@@ -47,6 +47,16 @@ public:
         return s_stage_count;
     }
 
+    constexpr explicit_euler() noexcept
+        requires(!data_types::dt_concepts::Resizeable<deriv_type>)
+    = default;
+
+    constexpr explicit_euler(size_type n) noexcept
+        requires data_types::dt_concepts::Resizeable<deriv_type>
+    {
+        resize_internals(n);
+    }
+
     auto do_step_impl(
         auto&&      system,
         state_type& x_in_out,
